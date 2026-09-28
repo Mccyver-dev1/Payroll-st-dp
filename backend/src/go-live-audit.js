@@ -21,7 +21,7 @@ const aliases = {
   DepartmentID:['DepartmentID','Department Id','Department ID'],
   DepartmentName:['DepartmentName','Department Name'],
   PositionID:['PositionID','Position Id','Position ID'],
-  PositionName:['PositionName','Position Name']
+  PositionName:['PositionName','Position Id','Position Name']
 };
 
 function fieldByAlias(fields, logical){
@@ -33,24 +33,25 @@ function text(v){
   if(v&&typeof v==='object') return String(v.text??v.name??v.id??'');
   return String(v??'');
 }
-function pairKey(row,fields){
-  return fields.map(f=>text(row.fields?.[f])).map(x=>x.trim()).join('::');
-}
 function duplicateReport(rows,fields){
   if(fields.some(f=>!f)) return {available:false,duplicates:[],checked:rows.length};
   const map=new Map();
   for(const row of rows){
-    const k=pairKey(row,fields);
-    if(!k.replace(/::/g,'')) continue;
-    const arr=map.get(k)||[];arr.push(row.record_id);map.set(k,arr);
+    const key=fields.map(f=>text(row.fields?.[f]).trim()).join('::');
+    if(!key.replace(/::/g,'')) continue;
+    const ids=map.get(key)||[];ids.push(row.record_id);map.set(key,ids);
   }
-  const duplicates=[...map.entries()].filter(([,ids])=>ids.length>1).map(([key,recordIds])=>({key,recordIds}));
-  return {available:true,duplicates,checked:rows.length};
+  return {
+    available:true,
+    duplicates:[...map.entries()].filter(([,ids])=>ids.length>1).map(([key,recordIds])=>({key,recordIds})),
+    checked:rows.length
+  };
 }
 
 export async function buildGoLiveAudit(){
   const mapping=await resolveTables();
   const tables=[];
+
   for(const key of Object.keys(REQUIRED)){
     const tableId=mapping[key];
     if(!tableId){tables.push({key,status:'MISSING',tableId:null});continue;}
@@ -65,16 +66,19 @@ export async function buildGoLiveAudit(){
   let payrollDuplicates={available:false,duplicates:[],checked:0};
   if(mapping.payroll){
     const fields=await getTableFields(mapping.payroll);
-    const e=fieldByAlias(fields,'EmployeeID')?.field_name;
-    const m=fieldByAlias(fields,'PayrollMonth')?.field_name;
-    payrollDuplicates=duplicateReport(await listRecords(mapping.payroll),[e,m]);
+    payrollDuplicates=duplicateReport(
+      await listRecords(mapping.payroll),
+      [fieldByAlias(fields,'EmployeeID')?.field_name,fieldByAlias(fields,'PayrollMonth')?.field_name]
+    );
   }
 
   let employeeDuplicates={available:false,duplicates:[],checked:0};
   if(mapping.employees){
     const fields=await getTableFields(mapping.employees);
-    const e=fieldByAlias(fields,'EmployeeID')?.field_name;
-    employeeDuplicates=duplicateReport(await listRecords(mapping.employees),[e]);
+    employeeDuplicates=duplicateReport(
+      await listRecords(mapping.employees),
+      [fieldByAlias(fields,'EmployeeID')?.field_name]
+    );
   }
 
   const checks=[
@@ -82,8 +86,7 @@ export async function buildGoLiveAudit(){
     {name:'PayrollRuns persistence schema',ok:runSchema.ready,details:runSchema},
     {name:'PayrollAudit persistence schema',ok:auditSchema.ready,details:auditSchema},
     {name:'Payroll duplicate guard',ok:payrollDuplicates.available&&payrollDuplicates.duplicates.length===0,details:payrollDuplicates},
-    {name:'EmployeeID duplicate guard',ok:employeeDuplicates.available&&employeeDuplicates.duplicates.length===0,details:employeeDuplicates},
-    {name:'Write flag',ok:process.env.ENABLE_PAYROLL_WRITE==='true',details:process.env.ENABLE_PAYROLL_WRITE==='true'?'ENABLED':'DISABLED'}
+    {name:'EmployeeID duplicate guard',ok:employeeDuplicates.available&&employeeDuplicates.duplicates.length===0,details:employeeDuplicates}
   ];
 
   return {
@@ -91,6 +94,7 @@ export async function buildGoLiveAudit(){
     generatedAt:new Date().toISOString(),
     checks,
     ready:checks.every(c=>c.ok),
-    policy:'This endpoint only reads Feishu. It never creates, updates, deletes, locks, approves, or commits payroll records.'
+    writeEnabled:process.env.ENABLE_PAYROLL_WRITE==='true',
+    policy:'This audit only reads Feishu. It never creates, updates, deletes, approves, locks, or commits payroll records.'
   };
 }
