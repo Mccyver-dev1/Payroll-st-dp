@@ -1,17 +1,17 @@
 <!doctype html>
 <html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mac Feishu Payroll — Production Run Control</title>
+<title>Mac Feishu Payroll — Production Gate</title>
 <style>body{font-family:Arial,sans-serif;background:#0b1220;color:#e8eef8;margin:0}main{max-width:1100px;margin:30px auto;padding:0 18px}.card{background:#111b2e;border:1px solid #263653;border-radius:14px;padding:18px;margin:14px 0}input,button{padding:10px;border-radius:8px}input{background:#0d1628;color:#fff;border:1px solid #405170}button{border:0;cursor:pointer;margin:4px}.ok{color:#63e6be}.bad{color:#ff7b7b}.warn{color:#ffd166}pre{white-space:pre-wrap}</style></head>
-<body><main><h1>Payroll Run Control</h1><p>Real Feishu persistent control — no memory fallback.</p>
-<div class="card"><input id="month" placeholder="YYYY-MM"><button onclick="readiness()">Production Readiness</button><button onclick="run('prepare')">Prepare / Validate</button><button onclick="run('approve')">Approve</button><button onclick="run('lock')">Lock</button><button onclick="commitRun()">Commit to Feishu</button><button onclick="loadRun()">Refresh</button></div>
+<body><main><h1>Payroll Run Control</h1><p>Real Feishu production gate — fail closed.</p>
+<div class="card"><input id="month" placeholder="YYYY-MM"><button onclick="readiness()">ตรวจ Production Readiness</button><button onclick="run('prepare')">Prepare / Validate</button><button onclick="run('approve')">Approve</button><button onclick="run('lock')">Lock</button><button onclick="commitRun()">Commit to Feishu</button><button onclick="loadRun()">Refresh</button></div>
 <div id="out" class="card">Loading...</div>
 <script type="module">
 import {apiFetch} from './api.js';
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function month(){const m=$('month').value.trim();if(!/^\d{4}-\d{2}$/.test(m))throw Error('Payroll Month must be YYYY-MM.');return m}
-async function readiness(){try{const r=await apiFetch('/api/production-readiness');const j=await r.json();$('out').innerHTML='<pre>'+esc(JSON.stringify(j,null,2))+'</pre>'}catch(e){$('out').innerHTML='<span class="bad">'+esc(e.message)+'</span>'}}
+window.readiness=async()=>{try{const r=await apiFetch('/api/production-readiness');const j=await r.json();$('out').innerHTML='<pre>'+esc(JSON.stringify(j.report||j,null,2))+'</pre>'}catch(e){$('out').innerHTML='<span class="bad">'+esc(e.message)+'</span>'}}
 async function loadRun(){try{const r=await apiFetch('/api/payroll-run/'+encodeURIComponent(month()));const j=await r.json();if(!j.ok)throw Error(j.error);$('out').innerHTML='<h2>Status: <span class="ok">'+esc(j.run.status)+'</span></h2><pre>'+esc(JSON.stringify(j.run,null,2))+'</pre>'}catch(e){$('out').innerHTML='<span class="bad">'+esc(e.message)+'</span>'}}
 window.run=async action=>{try{const r=await apiFetch('/api/payroll-run/'+encodeURIComponent(month())+'/'+action,{method:'POST',headers:{'Content-Type':'application/json'}});const j=await r.json();if(!j.ok)throw Error(j.error);await loadRun()}catch(e){$('out').innerHTML='<span class="bad">'+esc(e.message)+'</span>'}}
-window.commitRun=async()=>{try{const m=month();if(!confirm('ยืนยัน Commit Payroll จริงเข้า Feishu สำหรับ '+m+' ?'))return;const r=await apiFetch('/api/payroll-transaction/commit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({month:m})});const j=await r.json();if(!j.ok)throw Error(j.error);await loadRun()}catch(e){$('out').innerHTML='<span class="bad">'+esc(e.message)+'</span>'}}
-$('month').value=new Date().toISOString().slice(0,7);loadRun();
+window.commitRun=async()=>{try{const m=month();if(!confirm('ยืนยัน Commit Payroll จริงเข้า Feishu สำหรับ '+m+' ?'))return;const r=await apiFetch('/api/payroll-transaction/commit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({month:m})});const j=await r.json();if(!j.ok)throw Error(j.error||'Commit blocked');await loadRun()}catch(e){$('out').innerHTML='<span class="bad">'+esc(e.message)+'</span>'}}
+$('month').value=new Date().toISOString().slice(0,7);readiness();
 </script></main></body></html>
