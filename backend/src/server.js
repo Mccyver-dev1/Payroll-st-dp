@@ -3,12 +3,18 @@ import cors from 'cors';
 import {config} from './config.js';
 import {listTables,getTableFields,listRecords,resolveTables,normalizeRecord} from './feishu.js';
 import {buildAudit} from './audit.js';
+import {buildSchemaAudit} from './schema-audit.js';
 
 const app=express();
 app.use(cors({origin:config.frontendOrigin}));
 app.use(express.json({limit:'2mb'}));
 
-app.get('/api/health',(_req,res)=>res.json({ok:true,service:'mac-feishu-payroll',version:'step-2-audit',timestamp:new Date().toISOString()}));
+app.get('/api/health',(_req,res)=>res.json({
+  ok:true,
+  service:'mac-feishu-payroll',
+  version:'step-3-schema-audit',
+  timestamp:new Date().toISOString()
+}));
 
 app.get('/api/feishu/tables',async(_req,res)=>{
   try{res.json({ok:true,tables:(await listTables()).map(t=>({name:t.name,table_id:t.table_id}))});}
@@ -16,8 +22,7 @@ app.get('/api/feishu/tables',async(_req,res)=>{
 });
 
 async function loadBase(){
-  const mapping=await resolveTables();
-  const schemas={}; const records={};
+  const mapping=await resolveTables(); const schemas={}; const records={};
   for(const key of ['companies','departments','positions','employees','attendanceSummary','payroll','payrollItems','payslips']){
     const tableId=mapping[key];
     if(!tableId){schemas[key]={fields:[]};records[key]=[];continue;}
@@ -50,10 +55,14 @@ app.get('/api/sync',async(_req,res)=>{
 });
 
 app.get('/api/audit',async(_req,res)=>{
+  try{res.json({ok:true,report:buildAudit(await loadBase())});}
+  catch(e){res.status(502).json({ok:false,error:e.message});}
+});
+
+app.get('/api/schema-audit',async(_req,res)=>{
   try{
     const base=await loadBase();
-    const report=buildAudit(base);
-    res.json({ok:true,report});
+    res.json({ok:true,report:buildSchemaAudit(base)});
   }catch(e){res.status(502).json({ok:false,error:e.message});}
 });
 
