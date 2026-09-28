@@ -6,6 +6,13 @@ export const config = {
   appId: process.env.FEISHU_APP_ID || '',
   appSecret: process.env.FEISHU_APP_SECRET || '',
   appToken: process.env.FEISHU_APP_TOKEN || '',
+  payroll: {
+    otDivisor: Number(process.env.OT_DIVISOR || 240),
+    otMultiplier: Number(process.env.OT_MULTIPLIER || 1.5),
+    ssoRate: Number(process.env.SSO_RATE || 0.05),
+    ssoWageCap: Number(process.env.SSO_WAGE_CAP || 17500),
+    ssoMinimumWageBase: Number(process.env.SSO_MINIMUM_WAGE_BASE || 1650)
+  },
   tables: {
     companies: process.env.FEISHU_TABLE_COMPANIES || '',
     departments: process.env.FEISHU_TABLE_DEPARTMENTS || '',

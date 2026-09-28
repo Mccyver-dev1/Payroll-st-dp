@@ -24,30 +24,46 @@ export function normalizeAttendance(records){
  return records.map(r=>{const f=r.fields||{};return{recordId:r.record_id||r.id,employeeId:text(f,'EmployeeID','Employee ID','Emp ID'),month:text(f,'PayrollMonth','Month','เดือน'),workDays:n(pick(f,'WorkDays','Working Days','วันทำงาน')),otHours:n(pick(f,'OT_Hours','OT Hours','OT'))}})
 }
 
+export function normalizePayrollItems(records){
+ return records.map(r=>{const f=r.fields||{};return{
+   recordId:r.record_id||r.id,
+   payrollId:text(f,'PayrollID','Payroll ID'),
+   employeeId:text(f,'EmployeeID','Employee ID','Emp ID'),
+   allowances:n(pick(f,'Allowances','Allowance','เบี้ยเลี้ยง')),
+   bonus:n(pick(f,'Bonus','โบนัส')),
+   commission:n(pick(f,'Commission','คอมมิชชั่น')),
+   kpi:n(pick(f,'KPI','KPI Pay','ค่าผลงาน')),
+   deductions:n(pick(f,'Deduction','Deductions','หักอื่นๆ'))
+ }});}
+
+export function calculateSocialSecurity(wageBase){
+ const base=Math.min(
+   Math.max(n(wageBase),config.payroll.ssoMinimumWageBase),
+   config.payroll.ssoWageCap
+ );
+ return Math.round(base*config.payroll.ssoRate);
+}
+
+export function calculateOTPay(salary,otHours){
+ return n(otHours)*(n(salary)/config.payroll.otDivisor)*config.payroll.otMultiplier;
+}
+
 export function calculatePayroll(employees,attendance=[],items=[],month){
  const att=new Map(attendance.filter(x=>!month||String(x.month).startsWith(month)).map(x=>[x.employeeId,x]));
  const itemMap=new Map(items.map(x=>[x.employeeId,x]));
  return employees.map(e=>{
    const a=att.get(e.employeeId)||{otHours:0};
    const i=itemMap.get(e.employeeId)||{};
-   const otPay=n(a.otHours)*(e.salary/config.otDivisor)*config.otMultiplier;
+   const otPay=calculateOTPay(e.salary,a.otHours);
    const allowances=n(i.allowances)+n(i.bonus)+n(i.commission)+n(i.kpi);
    const deductions=n(i.deductions);
    const gross=e.salary+otPay+allowances;
-   const sso=Math.min(gross*config.ssoRate,config.ssoCap);
-   const taxable=Math.max(0,gross-sso-deductions);
-   const tax=estimateMonthlyTax(taxable);
-   const net=gross-sso-tax-deductions;
-   return {employeeId:e.employeeId,name:e.name,company:e.company,baseSalary:e.salary,otHours:a.otHours,otPay,allowances,deductions,gross,sso,tax,net};
- })
-}
-
-export function estimateMonthlyTax(monthly){
- // Conservative placeholder progressive estimate. Replace with the approved company tax policy before production payroll.
- const annual=monthly*12;
- let annualTax=0;
- const bands=[[150000,0],[150000,.05],[200000,.10],[250000,.15],[500000,.20],[1000000,.25],[2000000,.30],[Infinity,.35]];
- let prev=0;
- for(const [limit,rate] of bands){const taxable=Math.max(0,Math.min(annual,limit)-prev);annualTax+=taxable*rate;prev=limit;if(annual<=limit)break}
- return annualTax/12;
+   const sso=calculateSocialSecurity(gross);
+   return {
+     employeeId:e.employeeId,name:e.name,company:e.company,
+     baseSalary:e.salary,otHours:a.otHours,otPay,allowances,deductions,
+     gross,sso,tax:0,netBeforeTax:gross-sso-deductions,
+     taxStatus:'NOT_CONFIGURED',net:gross-sso-deductions
+   };
+ });
 }
