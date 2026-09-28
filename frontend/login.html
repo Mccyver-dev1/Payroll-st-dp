@@ -11,8 +11,12 @@ button{width:100%;padding:12px;border:0;border-radius:8px;cursor:pointer}.bad{co
 <form id="form"><label>Username</label><input id="username" autocomplete="username" required>
 <label>Password</label><input id="password" type="password" autocomplete="current-password" required>
 <button type="submit">Sign in</button></form><p id="error" class="bad"></p>
-<script>
+<script type="module">
+import {apiFetch} from './api.js';
 const $=id=>document.getElementById(id);
 $('form').onsubmit=async e=>{e.preventDefault();$('error').textContent='';
-try{const r=await fetch('/api/auth/login',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('username').value,password:$('password').value})});const j=await r.json();if(!j.ok)throw Error(j.error);location.href='/';}catch(err){$('error').textContent=err.message}}
+try{
+ const r=await apiFetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('username').value,password:$('password').value})});
+ const j=await r.json();if(!j.ok)throw Error(j.error||'Login failed');location.href='index.html';
+}catch(err){$('error').textContent=err.message}}
 </script></div></body></html>

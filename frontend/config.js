@@ -1,5 +1,6 @@
 window.PAYROLL_CONFIG = {
-  API_BASE_URL: "http://localhost:8787",
-  APP_NAME: "Mac Feishu Payroll",
-  FEISHU_APP_TOKEN: "JyW5bowBza5PeCsLKEiccUQcnof"
+  // Set this to the HTTPS URL of the deployed Payroll backend.
+  // Example: https://payroll-api.example.com
+  API_BASE_URL: "",
+  APP_NAME: "Mac Feishu Payroll"
 };

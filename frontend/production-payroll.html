@@ -11,23 +11,32 @@ table{width:100%;border-collapse:collapse;display:block;overflow:auto}th,td{padd
 <h1>Mac Feishu Payroll — Production Transaction</h1>
 <p class="muted">เชื่อม Feishu จริง • ไม่มีข้อมูลจำลอง • Prepare ก่อน Commit ทุกครั้ง</p>
 <div class="card">
-<label>Payroll Month <input id="month" value="2026-09" placeholder="YYYY-MM"></label>
-<label>API Key <input id="key" type="password" autocomplete="off"></label>
+<label>Payroll Month <input id="month" value="" placeholder="YYYY-MM"></label>
 <button id="prepare">Prepare from Feishu</button>
 <button id="commit">Commit to Feishu</button>
+<button id="logout">Logout</button>
 </div>
 <div id="out"></div>
-<script>
+<script type="module">
+import {apiFetch} from './api.js';
 let prepared=null,$=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function requireSession(){const r=await apiFetch('/api/auth/status');const j=await r.json();if(!j.authenticated)location.href='login.html';}
 async function prepare(){
- try{const m=$('month').value.trim();const r=await fetch('/api/payroll-transaction/prepare?month='+encodeURIComponent(m));prepared=await r.json();if(!prepared.ok)throw Error(prepared.error);
- const t=prepared.transaction;let h=`<div class="card"><h2 class="ok">REAL FEISHU DATA</h2><p>Employees: ${t.rows.length} | New Payroll records: ${t.candidates.length} | Existing skipped: ${t.duplicates.length}</p></div>`;
- h+='<div class="card"><h2>Records to Create</h2><table><tr><th>EmployeeID</th><th>Base</th><th>OT</th><th>Gross</th><th>SSO</th><th>Deduction</th><th>Tax</th><th>Net</th></tr>';
- for(const x of t.candidates)h+=`<tr><td>${esc(x.employeeId)}</td><td>${x.baseSalary}</td><td>${x.otPay}</td><td>${x.gross}</td><td>${x.socialSecurity}</td><td>${x.deductions}</td><td>${x.tax}</td><td>${x.net}</td></tr>`;
- h+='</table></div>';if(t.duplicates.length)h+=`<div class="card warn">Existing records preserved: ${esc(t.duplicates.join(', '))}</div>`;$('out').innerHTML=h;
+ try{
+  const m=$('month').value.trim();if(!/^\d{4}-\d{2}$/.test(m))throw Error('Payroll Month must be YYYY-MM.');
+  const r=await apiFetch('/api/payroll-transaction/prepare?month='+encodeURIComponent(m));prepared=await r.json();if(!prepared.ok)throw Error(prepared.error);
+  const t=prepared.transaction;let h=`<div class="card"><h2 class="ok">REAL FEISHU DATA</h2><p>Employees: ${t.rows.length} | New Payroll records: ${t.candidates.length} | Existing skipped: ${t.duplicates.length}</p></div>`;
+  h+='<div class="card"><h2>Records to Create</h2><table><tr><th>EmployeeID</th><th>Base</th><th>OT</th><th>Gross</th><th>SSO</th><th>Deduction</th><th>Tax</th><th>Net</th></tr>';
+  for(const x of t.candidates)h+=`<tr><td>${esc(x.employeeId)}</td><td>${x.baseSalary}</td><td>${x.otPay}</td><td>${x.gross}</td><td>${x.socialSecurity}</td><td>${x.deductions}</td><td>${x.tax}</td><td>${x.net}</td></tr>`;
+  h+='</table></div>';if(t.duplicates.length)h+=`<div class="card warn">Existing records preserved: ${esc(t.duplicates.join(', '))}</div>`;$('out').innerHTML=h;
  }catch(e){$('out').innerHTML=`<div class="card bad">${esc(e.message)}</div>`}}
 async function commit(){
+ if(!prepared?.transaction?.candidates?.length)return alert('Run Prepare first and confirm there are new records.');
  if(!confirm('ยืนยันเขียน Payroll records ลง Feishu จริงสำหรับเดือน '+$('month').value+' ?'))return;
- try{const r=await fetch('/api/payroll-transaction/commit',{method:'POST',headers:{'Content-Type':'application/json','X-Payroll-API-Key':$('key').value},body:JSON.stringify({month:$('month').value.trim()})});const j=await r.json();if(!j.ok)throw Error(j.error);$('out').innerHTML=`<div class="card ok"><h2>COMMITTED TO FEISHU</h2><pre>${esc(JSON.stringify(j.transaction,null,2))}</pre></div>`}catch(e){$('out').innerHTML=`<div class="card bad">${esc(e.message)}</div>`}}
-$('prepare').onclick=prepare;$('commit').onclick=commit;
+ try{
+  const r=await apiFetch('/api/payroll-transaction/commit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({month:$('month').value.trim()})});
+  const j=await r.json();if(!j.ok)throw Error(j.error);
+  $('out').innerHTML=`<div class="card ok"><h2>COMMITTED TO FEISHU</h2><p>Created: ${j.transaction.committed}</p></div>`;
+ }catch(e){$('out').innerHTML=`<div class="card bad">${esc(e.message)}</div>`}}
+$('prepare').onclick=prepare;$('commit').onclick=commit;$('logout').onclick=async()=>{await apiFetch('/api/auth/logout',{method:'POST'});location.href='login.html'};requireSession();
 </script></main></body></html>
