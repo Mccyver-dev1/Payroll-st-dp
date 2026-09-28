@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mac Feishu Payroll — STEP 5 Preview</title>
+<style>
+body{font-family:Arial,sans-serif;background:#0b1220;color:#e8eef8;margin:0}main{max-width:1250px;margin:30px auto;padding:0 18px}
+.card{background:#111b2e;border:1px solid #263653;border-radius:14px;padding:18px;margin:14px 0}
+button,input{padding:10px 14px;border-radius:8px;border:1px solid #405170;background:#0d1628;color:#fff}
+button{cursor:pointer}table{width:100%;border-collapse:collapse;display:block;overflow:auto}td,th{padding:8px;border-bottom:1px solid #263653;text-align:left;white-space:nowrap}
+.pass{color:#63e6be}.fail{color:#ff7b7b}.muted{color:#91a4c0}.toolbar{display:flex;gap:8px;flex-wrap:wrap}
+</style></head><body><main>
+<h1>STEP 5 — Payroll Calculation Preview</h1>
+<p class="muted">คำนวณจากข้อมูลที่อ่านจาก Feishu แบบ Preview เท่านั้น — ยังไม่เขียนกลับ Base</p>
+<div class="card toolbar"><label>Payroll Month <input id="month" value="2026-09" placeholder="YYYY-MM"></label><button id="run">Preview</button><button id="test">Self Test</button><button id="export">Export JSON</button></div>
+<div id="out"></div>
+</main>
+<script>
+let last=null,$=x=>document.getElementById(x),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function preview(){try{
+ const m=$('month').value.trim(),r=await fetch('/api/payroll-preview?month='+encodeURIComponent(m));last=await r.json();if(!last.ok)throw Error(last.error);
+ const v=last.validation;let h=`<div class="card"><b>Employees:</b> ${last.sourceCounts.employees} &nbsp; <b>Attendance rows:</b> ${last.sourceCounts.attendance} &nbsp; <b>Payroll item rows:</b> ${last.sourceCounts.payrollItems}<br><br><b>Validation:</b> <span class="${v.ok?'pass':'fail'}">${v.ok?'PASS':'FAIL'}</span></div>`;
+ if(v.warnings.length)h+=`<div class="card"><h3>Warnings</h3><ul>${v.warnings.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
+ h+='<div class="card"><table><tr><th>Employee</th><th>Name</th><th>Base</th><th>OT Hrs</th><th>OT Pay</th><th>Allowances</th><th>Bonus</th><th>Commission</th><th>KPI</th><th>Gross</th><th>SSO</th><th>Deduction</th><th>Tax</th><th>Net</th></tr>';
+ for(const x of last.rows)h+=`<tr><td>${esc(x.employeeId)}</td><td>${esc(x.name)}</td><td>${x.baseSalary}</td><td>${x.otHours}</td><td>${x.otPay}</td><td>${x.allowances}</td><td>${x.bonus}</td><td>${x.commission}</td><td>${x.kpi}</td><td>${x.gross}</td><td>${x.socialSecurity}</td><td>${x.deductions}</td><td>${x.tax} (${esc(x.taxStatus)})</td><td>${x.net}</td></tr>`;
+ h+='</table></div>';$('out').innerHTML=h;
+}catch(e){$('out').innerHTML=`<div class="card fail">${esc(e.message)}</div>`}}
+async function selfTest(){try{const r=await fetch('/api/payroll-self-test');const j=await r.json();last=j;$('out').innerHTML=`<div class="card"><h2 class="${j.report.pass?'pass':'fail'}">${j.report.pass?'SELF TEST PASS':'SELF TEST FAIL'}</h2><pre>${esc(JSON.stringify(j.report,null,2))}</pre></div>`}catch(e){$('out').innerHTML=`<div class="card fail">${esc(e.message)}</div>`}}
+$('run').onclick=preview;$('test').onclick=selfTest;$('export').onclick=()=>{if(!last)return alert('Run Preview or Self Test first');let b=new Blob([JSON.stringify(last,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='MAC-FEISHU-PAYROLL-STEP5.json';a.click()};
+</script></body></html>
