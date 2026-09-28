@@ -1,76 +1,19 @@
 <!doctype html>
-<html lang="th">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Mac Feishu Payroll</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="./config.js"></script>
-<style>body{font-family:Arial,'Noto Sans Thai',sans-serif}.nav-active{background:#e0ebff;color:#3370ff;font-weight:700}</style>
-</head>
-<body class="bg-slate-100 text-slate-800">
-<header class="sticky top-0 z-20 bg-white border-b px-6 py-4 flex justify-between items-center">
-  <div><h1 class="text-xl font-bold">Mac Feishu Payroll</h1><p class="text-xs text-slate-500">Real Feishu Bitable Integration</p></div>
-  <div class="flex gap-2"><button id="syncBtn" class="px-4 py-2 rounded-lg bg-blue-600 text-white">Sync Feishu</button><span id="status" class="px-3 py-2 text-sm">Ready</span></div>
-</header>
-<div class="flex min-h-[calc(100vh-73px)]">
-<aside class="w-60 bg-white border-r p-3">
-  <button data-tab="dashboard" class="nav w-full text-left p-3 rounded nav-active">Dashboard</button>
-  <button data-tab="employees" class="nav w-full text-left p-3 rounded">Employees</button>
-  <button data-tab="companies" class="nav w-full text-left p-3 rounded">Companies</button>
-  <button data-tab="attendance" class="nav w-full text-left p-3 rounded">Attendance</button>
-  <button data-tab="payroll" class="nav w-full text-left p-3 rounded">Payroll</button>
-  <button data-tab="payslips" class="nav w-full text-left p-3 rounded">Payslips</button>
-</aside>
-<main class="flex-1 p-6">
-<section id="dashboard" class="tab">
-<h2 class="text-2xl font-bold mb-5">Payroll Dashboard</h2>
-<div class="grid md:grid-cols-4 gap-4">
-<div class="bg-white p-5 rounded-xl border"><p>Employees</p><b id="kpiEmployees" class="text-2xl">0</b></div>
-<div class="bg-white p-5 rounded-xl border"><p>Gross</p><b id="kpiGross" class="text-2xl">฿0</b></div>
-<div class="bg-white p-5 rounded-xl border"><p>SSO</p><b id="kpiSSO" class="text-2xl">฿0</b></div>
-<div class="bg-white p-5 rounded-xl border"><p>Net Pay</p><b id="kpiNet" class="text-2xl text-emerald-600">฿0</b></div>
-</div>
-<div class="mt-6 bg-white rounded-xl border p-5"><canvas id="companyChart" height="110"></canvas></div>
-</section>
-
-<section id="employees" class="tab hidden"><h2 class="text-2xl font-bold mb-5">Employees</h2><div class="bg-white rounded-xl border overflow-auto"><table class="w-full text-sm"><thead class="bg-slate-100"><tr><th class="p-3 text-left">ID</th><th class="p-3 text-left">Name</th><th class="p-3 text-left">Company</th><th class="p-3 text-left">Department</th><th class="p-3 text-right">Salary</th></tr></thead><tbody id="employeesBody"></tbody></table></div></section>
-
-<section id="companies" class="tab hidden"><h2 class="text-2xl font-bold mb-5">Companies</h2><div class="bg-white rounded-xl border overflow-auto"><table class="w-full text-sm"><thead class="bg-slate-100"><tr><th class="p-3 text-left">ID</th><th class="p-3 text-left">Name</th><th class="p-3 text-left">Tax ID</th></tr></thead><tbody id="companiesBody"></tbody></table></div></section>
-
-<section id="attendance" class="tab hidden"><h2 class="text-2xl font-bold mb-5">Attendance Summary</h2><div class="bg-white rounded-xl border overflow-auto"><table class="w-full text-sm"><thead class="bg-slate-100"><tr><th class="p-3 text-left">Employee</th><th class="p-3 text-left">Month</th><th class="p-3 text-right">Work Days</th><th class="p-3 text-right">OT Hours</th></tr></thead><tbody id="attendanceBody"></tbody></table></div></section>
-
-<section id="payroll" class="tab hidden"><div class="flex justify-between mb-5"><h2 class="text-2xl font-bold">Payroll</h2><button id="calcBtn" class="px-4 py-2 bg-emerald-600 text-white rounded-lg">Calculate</button></div><div class="bg-white rounded-xl border overflow-auto"><table class="w-full text-sm"><thead class="bg-slate-100"><tr><th class="p-3 text-left">Employee</th><th class="p-3 text-right">Base</th><th class="p-3 text-right">OT</th><th class="p-3 text-right">Gross</th><th class="p-3 text-right">SSO</th><th class="p-3 text-right">Tax</th><th class="p-3 text-right">Net</th></tr></thead><tbody id="payrollBody"></tbody></table></div></section>
-
-<section id="payslips" class="tab hidden"><h2 class="text-2xl font-bold mb-5">e-Payslip</h2><div class="grid md:grid-cols-3 gap-5"><div class="bg-white rounded-xl border p-5"><select id="payslipEmployee" class="w-full border p-3 rounded-lg"></select><button id="sendPayslip" class="mt-3 w-full px-4 py-3 bg-blue-600 text-white rounded-lg">Send to Feishu Bot</button></div><div id="payslipCard" class="md:col-span-2 bg-white rounded-xl border p-6"></div></div></section>
-</main></div>
+<style>
+body{font-family:system-ui,sans-serif;margin:0;background:#f4f6f8;color:#1f2329}.top{padding:18px 24px;background:#fff;border-bottom:1px solid #ddd;display:flex;justify-content:space-between;align-items:center}.btn{border:1px solid #ccc;background:#fff;padding:10px 14px;border-radius:10px;cursor:pointer}.wrap{padding:24px}.status{padding:12px 16px;background:#fff;border:1px solid #ddd;border-radius:12px;margin-bottom:16px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.card{background:#fff;padding:16px;border:1px solid #ddd;border-radius:12px}table{width:100%;background:#fff;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;font-size:14px}.ok{color:#087f5b}.bad{color:#c92a2a}
+</style></head>
+<body><header class="top"><div><b>Mac Feishu Payroll</b><div>Real Feishu Sync — no mock data</div></div><button class="btn" onclick="sync()">↻ ซิงค์ Feishu Base</button></header>
+<main class="wrap"><div id="status" class="status">ยังไม่ได้ซิงค์</div><div id="cards" class="grid"></div>
+<h2>Employees</h2><div style="overflow:auto"><table><thead><tr><th>EmployeeID</th><th>Name</th><th>Company</th><th>Salary</th><th>Status</th></tr></thead><tbody id="employees"></tbody></table></div></main>
 <script>
-const API=window.PAYROLL_CONFIG.API_BASE_URL.replace(/\/$/,'');
-let state={employees:[],companies:[],attendance:[],payroll:[]};
-let chart;
-const money=n=>'฿'+Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
-async function api(path,options={}){const r=await fetch(API+path,{...options,headers:{'Content-Type':'application/json',...(options.headers||{})}});const j=await r.json();if(!r.ok)throw new Error(j.message||'API Error');return j}
-function setStatus(t){document.getElementById('status').textContent=t}
-function render(){
- document.getElementById('kpiEmployees').textContent=state.employees.length;
- const gross=state.payroll.reduce((s,x)=>s+Number(x.gross||0),0),sso=state.payroll.reduce((s,x)=>s+Number(x.sso||0),0),net=state.payroll.reduce((s,x)=>s+Number(x.net||0),0);
- document.getElementById('kpiGross').textContent=money(gross);document.getElementById('kpiSSO').textContent=money(sso);document.getElementById('kpiNet').textContent=money(net);
- document.getElementById('employeesBody').innerHTML=state.employees.map(e=>`<tr class="border-t"><td class="p-3">${e.employeeId||e.id||''}</td><td class="p-3">${e.name||''}</td><td class="p-3">${e.company||''}</td><td class="p-3">${e.department||''}</td><td class="p-3 text-right">${money(e.salary)}</td></tr>`).join('');
- document.getElementById('companiesBody').innerHTML=state.companies.map(c=>`<tr class="border-t"><td class="p-3">${c.companyId||c.id||''}</td><td class="p-3">${c.name||''}</td><td class="p-3">${c.taxId||''}</td></tr>`).join('');
- document.getElementById('attendanceBody').innerHTML=state.attendance.map(a=>`<tr class="border-t"><td class="p-3">${a.employeeId||''}</td><td class="p-3">${a.month||''}</td><td class="p-3 text-right">${a.workDays||0}</td><td class="p-3 text-right">${a.otHours||0}</td></tr>`).join('');
- document.getElementById('payrollBody').innerHTML=state.payroll.map(p=>`<tr class="border-t"><td class="p-3">${p.name||p.employeeId||''}</td><td class="p-3 text-right">${money(p.baseSalary)}</td><td class="p-3 text-right">${money(p.otPay)}</td><td class="p-3 text-right">${money(p.gross)}</td><td class="p-3 text-right">${money(p.sso)}</td><td class="p-3 text-right">${money(p.tax)}</td><td class="p-3 text-right font-bold text-emerald-600">${money(p.net)}</td></tr>`).join('');
- const sel=document.getElementById('payslipEmployee');sel.innerHTML=state.employees.map(e=>`<option value="${e.employeeId||e.id}">${e.name||e.employeeId}</option>`).join('');
- renderPayslip();
- const byCompany={};state.payroll.forEach(p=>byCompany[p.company||'Unknown']=(byCompany[p.company||'Unknown']||0)+Number(p.net||0));
- if(chart)chart.destroy();chart=new Chart(document.getElementById('companyChart'),{type:'bar',data:{labels:Object.keys(byCompany),datasets:[{label:'Net Pay',data:Object.values(byCompany)}]},options:{responsive:true}});
-}
-async function sync(){try{setStatus('Syncing...');const d=await api('/api/payroll/sync');state=d.data;render();setStatus('Synced '+new Date().toLocaleTimeString('th-TH'))}catch(e){setStatus('Sync failed');alert(e.message)}}
-async function calculate(){try{setStatus('Calculating...');const d=await api('/api/payroll/calculate',{method:'POST',body:JSON.stringify({month:new Date().toISOString().slice(0,7)})});state.payroll=d.data.payroll;render();setStatus('Calculated')}catch(e){alert(e.message)}}
-function renderPayslip(){const id=document.getElementById('payslipEmployee').value,p=state.payroll.find(x=>(x.employeeId||'')===id),e=state.employees.find(x=>(x.employeeId||x.id)===id);if(!p||!e){document.getElementById('payslipCard').innerHTML='<p class="text-slate-500">No payroll record</p>';return}document.getElementById('payslipCard').innerHTML=`<h3 class="text-xl font-bold">${e.name}</h3><p>${e.company||''}</p><hr class="my-4"><div class="space-y-2"><div class="flex justify-between"><span>Base Salary</span><b>${money(p.baseSalary)}</b></div><div class="flex justify-between"><span>OT Pay</span><b>${money(p.otPay)}</b></div><div class="flex justify-between"><span>Gross</span><b>${money(p.gross)}</b></div><div class="flex justify-between"><span>SSO</span><b>${money(p.sso)}</b></div><div class="flex justify-between"><span>Tax</span><b>${money(p.tax)}</b></div></div><div class="mt-5 p-4 rounded-lg bg-emerald-50 flex justify-between"><b>Net Pay</b><b class="text-emerald-600">${money(p.net)}</b></div>`}
-document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));document.getElementById(b.dataset.tab).classList.remove('hidden');document.querySelectorAll('.nav').forEach(x=>x.classList.remove('nav-active'));b.classList.add('nav-active')});
-document.getElementById('syncBtn').onclick=sync;document.getElementById('calcBtn').onclick=calculate;document.getElementById('payslipEmployee').onchange=renderPayslip;
-document.getElementById('sendPayslip').onclick=async()=>{try{const id=document.getElementById('payslipEmployee').value;await api('/api/payslips/send',{method:'POST',body:JSON.stringify({employeeId:id})});alert('ส่งข้อความเข้า Feishu Bot สำเร็จ')}catch(e){alert(e.message)}};
-sync();
-</script>
-</body></html>
+const API=(localStorage.getItem('PAYROLL_API_URL')||'').replace(/\/$/,'');
+const val=(f,n)=>{const v=f?.[n];if(Array.isArray(v))return v.map(x=>typeof x==='object'?(x.text||x.name||x.id||''):x).join(', ');return v??''};
+async function sync(){const s=document.getElementById('status');s.textContent='กำลังเชื่อมต่อ Feishu...';
+try{const r=await fetch(API+'/api/sync');const j=await r.json();if(!j.ok)throw new Error(j.error||'Sync failed');
+const d=j.data;s.innerHTML='<span class="ok">● Connected</span> · '+new Date(j.syncedAt).toLocaleString('th-TH');
+document.getElementById('cards').innerHTML=Object.entries(d).map(([k,v])=>`<div class="card"><b>${k}</b><div>${v.status}</div><strong>${v.count}</strong> records</div>`).join('');
+document.getElementById('employees').innerHTML=(d.employees?.records||[]).map(r=>`<tr><td>${val(r.fields,'EmployeeID')}</td><td>${val(r.fields,'Name')}</td><td>${val(r.fields,'Company')}</td><td>${val(r.fields,'Salary')}</td><td>${val(r.fields,'Status Employees')}</td></tr>`).join('');
+}catch(e){s.innerHTML='<span class="bad">● Sync failed</span> · '+e.message;}}
+</script></body></html>

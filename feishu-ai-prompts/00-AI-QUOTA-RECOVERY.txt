@@ -1,0 +1,15 @@
+FEISHU AI QUOTA RECOVERY
+
+When Base AI quota becomes available again, do NOT delete tables first.
+
+First inventory:
+1. table names and table IDs
+2. record counts
+3. field IDs/types
+4. links/lookups/formulas
+5. duplicate EmployeeID/PayrollID/PayslipID/ItemID
+6. orphan references
+
+Then stop and produce a report.
+
+No delete, merge, or formula overwrite until the report is reviewed.
