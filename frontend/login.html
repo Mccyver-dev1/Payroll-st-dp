@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mac Feishu Payroll — Login</title>
+<style>
+body{font-family:Arial,sans-serif;background:#0b1220;color:#e8eef8;min-height:100vh;display:grid;place-items:center;margin:0}
+.card{width:min(420px,calc(100% - 36px));background:#111b2e;border:1px solid #263653;border-radius:16px;padding:26px}
+input{width:100%;box-sizing:border-box;margin:8px 0 14px;padding:12px;border-radius:8px;border:1px solid #405170;background:#0d1628;color:#fff}
+button{width:100%;padding:12px;border:0;border-radius:8px;cursor:pointer}.bad{color:#ff7b7b}.muted{color:#91a4c0}
+</style></head><body><div class="card">
+<h1>Mac Feishu Payroll</h1><p class="muted">Production authentication</p>
+<form id="form"><label>Username</label><input id="username" autocomplete="username" required>
+<label>Password</label><input id="password" type="password" autocomplete="current-password" required>
+<button type="submit">Sign in</button></form><p id="error" class="bad"></p>
+<script>
+const $=id=>document.getElementById(id);
+$('form').onsubmit=async e=>{e.preventDefault();$('error').textContent='';
+try{const r=await fetch('/api/auth/login',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('username').value,password:$('password').value})});const j=await r.json();if(!j.ok)throw Error(j.error);location.href='/';}catch(err){$('error').textContent=err.message}}
+</script></div></body></html>

@@ -10,14 +10,24 @@ import {calculatePayrollRun,validatePayrollRun,runEngineSelfTest} from './payrol
 import {buildTaxDataContract} from './tax-data-contract.js';
 import {validatePayrollInputs} from './payroll-validation.js';
 import {preparePayrollTransaction,commitPayrollTransaction} from './payroll-transaction.js';
+import {login,requireSession,logout,authStatus} from './auth.js';
+import {originGuard,rateLimitLogin} from './security.js';
 
 const app=express();
-app.use(cors({origin:config.frontendOrigin}));
+const allowedOrigin=config.frontendOrigin==='*'?true:config.frontendOrigin;
+app.use(cors({origin:allowedOrigin,credentials:true}));
 app.use(express.json({limit:'2mb'}));
+app.use(originGuard);
 
-app.get('/api/health',(_req,res)=>res.json({ok:true,service:'mac-feishu-payroll',version:'step-7-real-payroll-transaction',timestamp:new Date().toISOString()}));
+app.get('/api/health',(_req,res)=>res.json({ok:true,service:'mac-feishu-payroll',version:'step-8-production-auth',timestamp:new Date().toISOString()}));
 
-app.get('/api/feishu/tables',async(_req,res)=>{
+app.post('/api/auth/login',rateLimitLogin,(req,res)=>{
+ try{return login(req,res);}catch(e){return res.status(500).json({ok:false,error:e.message});}
+});
+app.post('/api/auth/logout',logout);
+app.get('/api/auth/status',authStatus);
+
+app.get('/api/feishu/tables',requireSession,async(_req,res)=>{
  try{res.json({ok:true,tables:(await listTables()).map(t=>({name:t.name,table_id:t.table_id}))});}
  catch(e){res.status(502).json({ok:false,error:e.message});}
 });
@@ -33,7 +43,7 @@ async function loadBase(){
  return {mapping,schemas,records};
 }
 
-app.get('/api/feishu/schema',async(_req,res)=>{
+app.get('/api/feishu/schema',requireSession,async(_req,res)=>{
  try{
   const mapping=await resolveTables(),schema={};
   for(const [key,tableId] of Object.entries(mapping)){
@@ -44,7 +54,7 @@ app.get('/api/feishu/schema',async(_req,res)=>{
  }catch(e){res.status(502).json({ok:false,error:e.message});}
 });
 
-app.get('/api/sync',async(_req,res)=>{
+app.get('/api/sync',requireSession,async(_req,res)=>{
  try{
   const {mapping,records}=await loadBase(),data={};
   for(const key of ['companies','departments','positions','employees','attendanceSummary','payroll','payrollItems','payslips'])
@@ -53,27 +63,27 @@ app.get('/api/sync',async(_req,res)=>{
  }catch(e){res.status(502).json({ok:false,error:e.message});}
 });
 
-app.get('/api/audit',async(_req,res)=>{
+app.get('/api/audit',requireSession,async(_req,res)=>{
  try{res.json({ok:true,report:buildAudit(await loadBase())});}
  catch(e){res.status(502).json({ok:false,error:e.message});}
 });
 
-app.get('/api/schema-audit',async(_req,res)=>{
+app.get('/api/schema-audit',requireSession,async(_req,res)=>{
  try{res.json({ok:true,report:buildSchemaAudit(await loadBase())});}
  catch(e){res.status(502).json({ok:false,error:e.message});}
 });
 
-app.get('/api/payroll-audit',(_req,res)=>{
+app.get('/api/payroll-audit',requireSession,(_req,res)=>{
  try{res.json({ok:true,report:buildPayrollAudit()});}
  catch(e){res.status(500).json({ok:false,error:e.message});}
 });
 
-app.get('/api/payroll-self-test',(_req,res)=>{
+app.get('/api/payroll-self-test',requireSession,(_req,res)=>{
  try{res.json({ok:true,report:runEngineSelfTest()});}
  catch(e){res.status(500).json({ok:false,error:e.message});}
 });
 
-app.get('/api/payroll-preview',async(req,res)=>{
+app.get('/api/payroll-preview',requireSession,async(req,res)=>{
  try{
   const month=String(req.query.month||'');
   const base=await loadBase();
@@ -81,18 +91,16 @@ app.get('/api/payroll-preview',async(req,res)=>{
   const attendance=normalizeAttendance(base.records.attendanceSummary||[]);
   const items=normalizePayrollItems(base.records.payrollItems||[]);
   const rows=calculatePayrollRun(employees,attendance,items,month);
-  res.json({ok:true,month,rows,validation:validatePayrollRun(rows),sourceCounts:{
-    employees:employees.length,attendance:attendance.length,payrollItems:items.length
-  }});
+  res.json({ok:true,month,rows,validation:validatePayrollRun(rows),sourceCounts:{employees:employees.length,attendance:attendance.length,payrollItems:items.length}});
  }catch(e){res.status(502).json({ok:false,error:e.message});}
 });
 
-app.get('/api/tax-data-contract',async(_req,res)=>{
+app.get('/api/tax-data-contract',requireSession,async(_req,res)=>{
  try{res.json({ok:true,report:buildTaxDataContract(await loadBase())});}
  catch(e){res.status(502).json({ok:false,error:e.message});}
 });
 
-app.get('/api/payroll-validation',async(req,res)=>{
+app.get('/api/payroll-validation',requireSession,async(req,res)=>{
  try{
   const month=String(req.query.month||'');
   const base=await loadBase();
@@ -104,12 +112,12 @@ app.get('/api/payroll-validation',async(req,res)=>{
  }catch(e){res.status(502).json({ok:false,error:e.message});}
 });
 
-app.get('/api/payroll-transaction/prepare',async(req,res)=>{
+app.get('/api/payroll-transaction/prepare',requireSession,async(req,res)=>{
  try{res.json({ok:true,transaction:await preparePayrollTransaction(String(req.query.month||''))});}
  catch(e){res.status(422).json({ok:false,error:e.message});}
 });
 
-app.post('/api/payroll-transaction/commit',async(req,res)=>{
+app.post('/api/payroll-transaction/commit',requireSession,async(req,res)=>{
  try{
   const month=String(req.body?.month||'');
   const result=await commitPayrollTransaction(req,month);
