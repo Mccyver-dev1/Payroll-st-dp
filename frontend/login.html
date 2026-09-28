@@ -11,6 +11,7 @@ button{width:100%;padding:12px;border:0;border-radius:8px;cursor:pointer}.bad{co
 <form id="form"><label>Username</label><input id="username" autocomplete="username" required>
 <label>Password</label><input id="password" type="password" autocomplete="current-password" required>
 <button type="submit">Sign in</button></form><p id="error" class="bad"></p>
+<script src="./config.js"></script>
 <script type="module">
 import {apiFetch} from './api.js';
 const $=id=>document.getElementById(id);

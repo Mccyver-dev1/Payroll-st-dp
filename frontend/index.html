@@ -7,13 +7,16 @@ body{font-family:system-ui,sans-serif;margin:0;background:#f4f6f8;color:#1f2329}
 <body><header class="top"><div><b>Mac Feishu Payroll</b><div>Real Feishu Sync — no mock data</div></div><div><button class="btn" onclick="sync()">↻ ซิงค์ Feishu Base</button> <button class="btn" onclick="logout()">ออกจากระบบ</button></div></header>
 <main class="wrap"><div id="status" class="status">ตรวจสอบ Session...</div><div id="cards" class="grid"></div>
 <h2>Employees</h2><div style="overflow:auto"><table><thead><tr><th>EmployeeID</th><th>Name</th><th>Company</th><th>Salary</th><th>Status</th></tr></thead><tbody id="employees"></tbody></table></div></main>
+<script src="./config.js"></script>
 <script type="module">
 import {apiFetch} from './api.js';
 const val=(f,n)=>{const v=f?.[n];if(Array.isArray(v))return v.map(x=>typeof x==='object'?(x.text||x.name||x.id||''):x).join(', ');return v??''};
 async function checkSession(){
- const r=await apiFetch('/api/auth/status');const j=await r.json();
- if(!j.authenticated){location.href='login.html';return false}
- document.getElementById('status').innerHTML='<span class="ok">● Authenticated</span> · '+j.user.username;return true;
+ try{
+  const r=await apiFetch('/api/auth/status');const j=await r.json();
+  if(!j.authenticated){location.href='login.html';return false}
+  document.getElementById('status').innerHTML='<span class="ok">● Authenticated</span> · '+j.user.username;return true;
+ }catch(e){document.getElementById('status').innerHTML='<span class="bad">● Backend not configured</span> · '+e.message;return false}
 }
 window.sync=async function(){const s=document.getElementById('status');s.textContent='กำลังเชื่อมต่อ Feishu...';
 try{const r=await apiFetch('/api/sync');const j=await r.json();if(!j.ok)throw new Error(j.error||'Sync failed');
@@ -21,6 +24,6 @@ const d=j.data;s.innerHTML='<span class="ok">● Connected</span> · '+new Date(
 document.getElementById('cards').innerHTML=Object.entries(d).map(([k,v])=>`<div class="card"><b>${k}</b><div>${v.status}</div><strong>${v.count}</strong> records</div>`).join('');
 document.getElementById('employees').innerHTML=(d.employees?.records||[]).map(r=>`<tr><td>${val(r.fields,'EmployeeID')}</td><td>${val(r.fields,'Name')}</td><td>${val(r.fields,'Company')}</td><td>${val(r.fields,'Salary')}</td><td>${val(r.fields,'Status Employees')}</td></tr>`).join('');
 }catch(e){s.innerHTML='<span class="bad">● Sync failed</span> · '+e.message;}}
-window.logout=async function(){await apiFetch('/api/auth/logout',{method:'POST'});location.href='login.html'};
+window.logout=async function(){try{await apiFetch('/api/auth/logout',{method:'POST'})}finally{location.href='login.html'}};
 checkSession();
 </script></body></html>

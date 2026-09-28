@@ -1,10 +1,11 @@
 <!doctype html>
 <html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Mac Feishu Payroll — Production Audit</title>
-<style>body{font-family:Arial,sans-serif;background:#0b1220;color:#e8eef8;margin:0}main{max-width:1150px;margin:30px auto;padding:0 18px}.card{background:#111b2e;border:1px solid #263653;border-radius:14px;padding:18px;margin:14px 0}input,button{padding:10px;border-radius:8px}input{background:#0d1628;color:#fff;border:1px solid #405170}button{border:0;cursor:pointer;margin:4px}pre{white-space:pre-wrap;overflow:auto}.bad{color:#ff7b7b}.ok{color:#63e6be}</style></head>
+<style>body{font-family:Arial,sans-serif;background:#0b1220;color:#e8eef8;margin:0}main{max-width:1150px;margin:30px auto;padding:0 18px}.card{background:#111b2e;border:1px solid #263653;border-radius:14px;padding:18px;margin:14px 0}input,button{padding:10px;border-radius:8px}input{background:#0d1628;color:#fff;border:1px solid #405170}button{border:0;cursor:pointer;margin:4px}pre{white-space:pre-wrap;overflow:auto}.bad{color:#ff7b7b}</style></head>
 <body><main><h1>Payroll Run Control</h1><p>Production audits are read-only. No demo data is generated.</p>
 <div class="card"><input id="month" placeholder="YYYY-MM"><button onclick="audit('/api/go-live-audit')">Go-Live Audit</button><button onclick="audit('/api/data-integrity-audit')">Data Integrity Audit</button><button onclick="audit('/api/production-readiness')">Production Readiness</button><button onclick="run('prepare')">Prepare / Validate</button><button onclick="run('approve')">Approve</button><button onclick="run('lock')">Lock</button><button onclick="commitRun()">Commit to Feishu</button></div>
 <div id="out" class="card">Loading...</div>
+<script src="./config.js"></script>
 <script type="module">
 import {apiFetch} from './api.js';
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
