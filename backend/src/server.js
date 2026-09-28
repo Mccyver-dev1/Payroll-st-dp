@@ -9,12 +9,13 @@ import {normalizeEmployees,normalizeAttendance,normalizePayrollItems} from './pa
 import {calculatePayrollRun,validatePayrollRun,runEngineSelfTest} from './payroll-engine.js';
 import {buildTaxDataContract} from './tax-data-contract.js';
 import {validatePayrollInputs} from './payroll-validation.js';
+import {preparePayrollTransaction,commitPayrollTransaction} from './payroll-transaction.js';
 
 const app=express();
 app.use(cors({origin:config.frontendOrigin}));
 app.use(express.json({limit:'2mb'}));
 
-app.get('/api/health',(_req,res)=>res.json({ok:true,service:'mac-feishu-payroll',version:'step-6-tax-data-contract',timestamp:new Date().toISOString()}));
+app.get('/api/health',(_req,res)=>res.json({ok:true,service:'mac-feishu-payroll',version:'step-7-real-payroll-transaction',timestamp:new Date().toISOString()}));
 
 app.get('/api/feishu/tables',async(_req,res)=>{
  try{res.json({ok:true,tables:(await listTables()).map(t=>({name:t.name,table_id:t.table_id}))});}
@@ -87,10 +88,8 @@ app.get('/api/payroll-preview',async(req,res)=>{
 });
 
 app.get('/api/tax-data-contract',async(_req,res)=>{
- try{
-  const base=await loadBase();
-  res.json({ok:true,report:buildTaxDataContract(base)});
- }catch(e){res.status(502).json({ok:false,error:e.message});}
+ try{res.json({ok:true,report:buildTaxDataContract(await loadBase())});}
+ catch(e){res.status(502).json({ok:false,error:e.message});}
 });
 
 app.get('/api/payroll-validation',async(req,res)=>{
@@ -103,6 +102,22 @@ app.get('/api/payroll-validation',async(req,res)=>{
   const rows=calculatePayrollRun(employees,attendance,items,month);
   res.json({ok:true,report:validatePayrollInputs(rows,month)});
  }catch(e){res.status(502).json({ok:false,error:e.message});}
+});
+
+app.get('/api/payroll-transaction/prepare',async(req,res)=>{
+ try{res.json({ok:true,transaction:await preparePayrollTransaction(String(req.query.month||''))});}
+ catch(e){res.status(422).json({ok:false,error:e.message});}
+});
+
+app.post('/api/payroll-transaction/commit',async(req,res)=>{
+ try{
+  const month=String(req.body?.month||'');
+  const result=await commitPayrollTransaction(req,month);
+  res.json({ok:true,transaction:result});
+ }catch(e){
+  const code=e.message.startsWith('Unauthorized')?401:422;
+  res.status(code).json({ok:false,error:e.message});
+ }
 });
 
 app.listen(config.port,()=>console.log(`Payroll backend listening on ${config.port}`));
