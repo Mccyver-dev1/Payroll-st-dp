@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: mac-feishu-payroll-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: FEISHU_APP_ID
+        sync: false
+      - key: FEISHU_APP_SECRET
+        sync: false
+      - key: FEISHU_APP_TOKEN
+        value: JyW5bowBza5PeCsLKEiccUQcnof
+      - key: FRONTEND_ORIGIN
+        value: https://mccyver-dev1.github.io

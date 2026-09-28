@@ -1,0 +1,31 @@
+FEISHU AI COMMAND — TABLE MAPPING
+
+ตรวจสอบว่า Base มีตารางตาม target model:
+
+Companies
+Departments & Positions
+Employees
+AttendanceSummary
+Payroll
+PayrollItems
+Payslips
+
+สำหรับแต่ละตาราง:
+- Table ID
+- จำนวน records
+- Field names
+- Field types
+- Primary business key
+- Relation fields
+- Missing required fields
+
+ตรวจสอบ Employees:
+EmployeeID, Name, Company, Department, Position, Salary, OpenID
+
+ตรวจสอบ AttendanceSummary:
+EmployeeID, PayrollMonth, WorkDays, OT_Hours
+
+ตรวจสอบ Payroll:
+EmployeeID, PayrollMonth, Base Salary, Gross, SSO, Tax, Net Pay
+
+ห้ามแก้ข้อมูล

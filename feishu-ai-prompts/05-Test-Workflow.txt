@@ -1,0 +1,25 @@
+FEISHU AI COMMAND — PAYROLL TEST
+
+สร้างชุดทดสอบ Payroll โดยไม่กระทบข้อมูล Production
+
+Test cases:
+1. เงินเดือนอย่างเดียว
+2. เงินเดือน + OT
+3. เงินเดือน + Allowance
+4. เงินเดือน + Commission
+5. เงินเดือน + Bonus
+6. มี Deduction
+7. SSO ถึงเพดาน
+8. พนักงานไม่มี OT
+9. พนักงานไม่มี PayrollItems
+10. ข้อมูล EmployeeID ไม่พบใน AttendanceSummary
+
+สำหรับแต่ละ case:
+- Input
+- Expected Gross
+- Expected SSO
+- Expected Tax
+- Expected Net
+- Result
+
+ห้ามเขียนทับ Production Payroll

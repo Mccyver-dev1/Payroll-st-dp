@@ -1,0 +1,24 @@
+FEISHU AI COMMAND — GO LIVE GATE
+
+ตรวจสอบระบบ Mac Feishu Payroll ก่อนเปิดใช้งานจริง
+
+ตรวจ:
+Frontend
+Backend
+Feishu App
+Bitable
+Permissions
+Data Scope
+Payroll Formula
+SSO
+Tax
+Payslip
+Bot
+Audit
+Backup
+Security
+
+ผลลัพธ์:
+PASS / FAIL / BLOCKED
+
+ถ้า FAIL หรือ BLOCKED ให้หยุด ไม่ Publish และไม่แก้ Production data

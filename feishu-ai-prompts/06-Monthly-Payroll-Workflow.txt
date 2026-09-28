@@ -1,0 +1,25 @@
+FEISHU AI COMMAND — MONTHLY PAYROLL
+
+ออกแบบ Workflow ประจำเดือน:
+
+1. Freeze attendance cutoff
+2. ตรวจ AttendanceSummary
+3. ตรวจ Employees active
+4. ดึง PayrollItems
+5. คำนวณ Gross
+6. คำนวณ OT
+7. คำนวณ SSO
+8. คำนวณ Tax ตาม policy ที่ฝ่ายบัญชีอนุมัติ
+9. สร้าง Payroll Draft
+10. HR Review
+11. Payroll Approval
+12. Lock Payroll
+13. Generate Payslips
+14. ส่งแจ้งเตือน Feishu Bot
+15. Export report
+16. Audit log
+
+ต้องมีสถานะ:
+DRAFT → CALCULATED → REVIEW → APPROVED → LOCKED → PAID
+
+ห้ามเปลี่ยน LOCKED payroll โดยไม่มีสิทธิ์และ audit trail

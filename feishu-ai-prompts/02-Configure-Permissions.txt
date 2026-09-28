@@ -1,0 +1,22 @@
+FEISHU AI COMMAND — PERMISSIONS
+
+ตั้งค่า Permission สำหรับแอป Mac Feishu Payroll โดยหลัก Least Privilege
+
+ต้องรองรับ:
+- อ่าน Companies
+- อ่าน Departments & Positions
+- อ่าน Employees
+- อ่าน AttendanceSummary
+- อ่าน/เขียน Payroll เมื่อ workflow พร้อม
+- อ่าน PayrollItems
+- สร้าง/อัปเดต Payslips เมื่อ workflow พร้อม
+- ส่งข้อความผ่าน Bot เฉพาะเมื่อเปิดใช้งาน
+
+ตรวจสอบ:
+1. permission ที่จำเป็น
+2. permission ที่เกินความจำเป็น
+3. data scope ของ Base
+4. Bot capability
+5. Web App capability
+
+ก่อน Publish ให้สร้าง checklist และหยุดเพื่อให้ผู้ดูแลยืนยัน

@@ -1,0 +1,30 @@
+FEISHU AI COMMAND — BASE AUDIT
+
+คุณคือผู้ช่วยวางโครงสร้าง Feishu Bitable สำหรับระบบ Mac Feishu Payroll
+
+เป้าหมาย:
+ตรวจสอบ Base ที่เชื่อมกับ App Token:
+JyW5bowBza5PeCsLKEiccUQcnof
+
+ให้ทำดังนี้:
+1. แสดงรายชื่อตารางทั้งหมด
+2. แสดง Table ID ของแต่ละตาราง
+3. แสดงชื่อ Field และชนิดข้อมูล
+4. ตรวจหาตาราง Employees ที่ซ้ำกัน
+5. ตรวจหาฟิลด์เงินเดือน/OT/SSO/Tax ที่ซ้ำกัน
+6. ห้ามลบข้อมูล
+7. ห้ามเปลี่ยนชื่อ Field เดิมโดยไม่ได้รับอนุมัติ
+8. เสนอ Mapping ไปยัง 8 ตาราง:
+Companies
+Departments & Positions
+Employees
+AttendanceSummary
+Payroll
+PayrollItems
+Payslips
+และตาราง Audit/Log ถ้าจำเป็น
+
+ผลลัพธ์ต้องเป็นตาราง:
+Current Table | Table ID | Purpose | Duplicate? | Target Table | Action
+
+ห้ามดำเนินการ Delete/Archive จนกว่าจะได้รับคำสั่งยืนยัน

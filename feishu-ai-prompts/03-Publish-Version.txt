@@ -1,0 +1,16 @@
+FEISHU AI COMMAND — PUBLISH GATE
+
+ตรวจสอบแอป Mac Feishu Payroll ก่อน Publish
+
+Checklist:
+- App ID ถูกต้อง
+- Web App URL ถูกต้อง
+- Permission ครบ
+- Data scope ครบ
+- Bot capability พร้อม
+- ไม่มี App Secret ใน frontend
+- Version number: 1.0.0
+- Release notes ระบุว่าเป็น Real Feishu Payroll Integration
+
+ห้าม Publish หาก permission หรือ data scope ยังไม่ครบ
+หลังตรวจเสร็จ ให้รายงาน PASS/FAIL พร้อมเหตุผล
