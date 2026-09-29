@@ -11,6 +11,12 @@ services:
       - key: FEISHU_APP_SECRET
         sync: false
       - key: FEISHU_APP_TOKEN
-        value: JyW5bowBza5PeCsLKEiccUQcnof
+        sync: false
       - key: FRONTEND_ORIGIN
         value: https://mccyver-dev1.github.io
+      - key: SESSION_SECRET
+        sync: false
+      - key: PAYROLL_ADMIN_USERNAME
+        sync: false
+      - key: PAYROLL_ADMIN_PASSWORD_HASH
+        sync: false
