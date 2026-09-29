@@ -4,7 +4,7 @@
 <style>
 body{font-family:system-ui,sans-serif;margin:0;background:#f4f6f8;color:#1f2329}.top{padding:18px 24px;background:#fff;border-bottom:1px solid #ddd;display:flex;justify-content:space-between;align-items:center}.btn{border:1px solid #ccc;background:#fff;padding:10px 14px;border-radius:10px;cursor:pointer}.wrap{padding:24px}.status{padding:12px 16px;background:#fff;border:1px solid #ddd;border-radius:12px;margin-bottom:16px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.card{background:#fff;padding:16px;border:1px solid #ddd;border-radius:12px}table{width:100%;background:#fff;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;font-size:14px}.ok{color:#087f5b}.bad{color:#c92a2a}
 </style></head>
-<body><header class="top"><div><b>Mac Feishu Payroll</b><div>Real Feishu Sync — no mock data</div></div><div><button class="btn" onclick="sync()">↻ ซิงค์ Feishu Base</button> <button class="btn" onclick="logout()">ออกจากระบบ</button></div></header>
+<body><header class="top"><div><b>Mac Feishu Payroll</b><div>Real Feishu Sync — no mock data</div></div><div><button class="btn" onclick="location.href='payroll.html'">05 Payroll</button> <button class="btn" onclick="sync()">↻ ซิงค์ Feishu Base</button> <button class="btn" onclick="logout()">ออกจากระบบ</button></div></header>
 <main class="wrap"><div id="status" class="status">ตรวจสอบ Session...</div><div id="cards" class="grid"></div>
 <h2>Employees</h2><div style="overflow:auto"><table><thead><tr><th>EmployeeID</th><th>Name</th><th>Company</th><th>Salary</th><th>Status</th></tr></thead><tbody id="employees"></tbody></table></div></main>
 <script src="./config.js"></script>
