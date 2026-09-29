@@ -8,13 +8,12 @@ let cached = {
 };
 
 /**
- * Fetch JSON from Feishu Open API.
- * Includes HTTP status + Feishu error code/message for diagnostics.
+ * Execute Feishu Open API request.
  */
 async function jsonFetch(url, options = {}) {
-  const r = await fetch(url, options);
+  const response = await fetch(url, options);
 
-  const raw = await r.text();
+  const raw = await response.text();
 
   let body;
 
@@ -27,11 +26,11 @@ async function jsonFetch(url, options = {}) {
   }
 
   if (
-    !r.ok ||
+    !response.ok ||
     (body.code !== undefined && body.code !== 0)
   ) {
     throw new Error(
-      `Feishu API ${r.status}: code=${body.code ?? 'unknown'} msg=${body.msg || raw}`
+      `Feishu API ${response.status}: code=${body.code ?? 'unknown'} msg=${body.msg || raw}`
     );
   }
 
@@ -39,16 +38,11 @@ async function jsonFetch(url, options = {}) {
 }
 
 /**
- * Get Feishu tenant access token.
- *
- * Uses:
- * FEISHU_APP_ID
- * FEISHU_APP_SECRET
+ * Get tenant access token.
  */
 export async function tenantAccessToken() {
   assertFeishuConfig();
 
-  // Reuse cached token while valid.
   if (
     cached.token &&
     Date.now() < cached.expiresAt
@@ -71,7 +65,9 @@ export async function tenantAccessToken() {
     }
   );
 
-  const ttl = Number(body.expire || 7200);
+  const ttl = Number(
+    body.expire || 7200
+  );
 
   cached = {
     token: body.tenant_access_token,
@@ -86,12 +82,11 @@ export async function tenantAccessToken() {
 /**
  * Call Feishu Open API.
  *
- * GET requests:
- * - Authorization
- * - Accept
+ * GET:
+ *   Authorization + Accept
  *
- * Requests with a body:
- * - additionally send Content-Type application/json
+ * Request with body:
+ *   Authorization + Accept + Content-Type
  */
 async function call(path, options = {}) {
   const token = await tenantAccessToken();
@@ -117,24 +112,44 @@ async function call(path, options = {}) {
 
 /**
  * List all tables in the Feishu Base.
+ *
+ * Important:
+ * The first request intentionally has NO query parameters.
+ * This isolates Feishu's list-tables endpoint from pagination
+ * parameter issues.
  */
 export async function listTables() {
   const items = [];
 
   let pageToken = '';
+  let firstRequest = true;
 
   do {
-    const qs = new URLSearchParams({
-      page_size: '100'
-    });
+    let path =
+      `/bitable/v1/apps/${config.appToken}/tables`;
 
-    if (pageToken) {
-      qs.set('page_token', pageToken);
+    /*
+     * First request:
+     * GET /tables
+     *
+     * Do not send page_size/page_token.
+     */
+    if (!firstRequest) {
+      const qs = new URLSearchParams();
+
+      qs.set('page_size', '100');
+
+      if (pageToken) {
+        qs.set(
+          'page_token',
+          pageToken
+        );
+      }
+
+      path += `?${qs.toString()}`;
     }
 
-    const out = await call(
-      `/bitable/v1/apps/${config.appToken}/tables?${qs}`
-    );
+    const out = await call(path);
 
     items.push(
       ...(out.data?.items || [])
@@ -142,6 +157,20 @@ export async function listTables() {
 
     pageToken =
       out.data?.page_token || '';
+
+    const hasMore =
+      Boolean(out.data?.has_more);
+
+    firstRequest = false;
+
+    /*
+     * Stop if Feishu says there are
+     * no more pages, even if page_token
+     * happens to be present.
+     */
+    if (!hasMore) {
+      break;
+    }
 
   } while (pageToken);
 
@@ -157,16 +186,19 @@ export async function getTableFields(tableId) {
   let pageToken = '';
 
   do {
-    const qs = new URLSearchParams({
-      page_size: '100'
-    });
+    const qs = new URLSearchParams();
+
+    qs.set('page_size', '100');
 
     if (pageToken) {
-      qs.set('page_token', pageToken);
+      qs.set(
+        'page_token',
+        pageToken
+      );
     }
 
     const out = await call(
-      `/bitable/v1/apps/${config.appToken}/tables/${tableId}/fields?${qs}`
+      `/bitable/v1/apps/${config.appToken}/tables/${tableId}/fields?${qs.toString()}`
     );
 
     items.push(
@@ -175,6 +207,10 @@ export async function getTableFields(tableId) {
 
     pageToken =
       out.data?.page_token || '';
+
+    if (!out.data?.has_more) {
+      break;
+    }
 
   } while (pageToken);
 
@@ -190,16 +226,23 @@ export async function listRecords(tableId) {
   let pageToken = '';
 
   do {
-    const qs = new URLSearchParams({
-      page_size: '500'
-    });
+    const qs = new URLSearchParams();
+
+    /*
+     * Feishu allows up to 500 records
+     * per request for this endpoint.
+     */
+    qs.set('page_size', '500');
 
     if (pageToken) {
-      qs.set('page_token', pageToken);
+      qs.set(
+        'page_token',
+        pageToken
+      );
     }
 
     const out = await call(
-      `/bitable/v1/apps/${config.appToken}/tables/${tableId}/records?${qs}`
+      `/bitable/v1/apps/${config.appToken}/tables/${tableId}/records?${qs.toString()}`
     );
 
     all.push(
@@ -209,16 +252,21 @@ export async function listRecords(tableId) {
     pageToken =
       out.data?.page_token || '';
 
+    if (!out.data?.has_more) {
+      break;
+    }
+
   } while (pageToken);
 
   return all;
 }
 
 /**
- * Resolve payroll tables by:
+ * Resolve payroll tables.
  *
- * 1. Explicit environment variable table ID
- * 2. Table name discovery
+ * Priority:
+ * 1. Explicit table ID from environment variables
+ * 2. Automatic discovery by table name
  */
 export async function resolveTables() {
   const tables = await listTables();
@@ -235,14 +283,17 @@ export async function resolveTables() {
   const pick = (
     key,
     names
-  ) =>
-    config.tables[key] ||
-    names
-      .map(
-        name => byName.get(name)
-      )
-      .find(Boolean) ||
-    null;
+  ) => {
+    return (
+      config.tables[key] ||
+      names
+        .map(
+          name => byName.get(name)
+        )
+        .find(Boolean) ||
+      null
+    );
+  };
 
   return {
     companies: pick(
@@ -297,14 +348,6 @@ export async function resolveTables() {
 
 /**
  * Normalize Feishu field values.
- *
- * Feishu may return values as:
- * - primitive
- * - array
- * - object
- * - object.text
- * - object.name
- * - object.id
  */
 function normalize(value) {
   if (Array.isArray(value)) {
@@ -327,7 +370,7 @@ function normalize(value) {
 }
 
 /**
- * Normalize a Feishu record into a predictable structure.
+ * Normalize a Feishu record.
  */
 export function normalizeRecord(record) {
   const fields = {};
