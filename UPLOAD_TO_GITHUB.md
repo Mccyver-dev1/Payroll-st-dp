@@ -1,45 +1,26 @@
-# MAC Feishu Payroll — Payroll Engine v1 release
+# MAC Feishu Payroll — Payroll Engine v1.1 release
 
-This package contains the production Payroll-only changes prepared for repository `Mccyver-dev1/Payroll-st-dp`.
-
-## Replace/add these files
-
-Replace:
+## Replace
 - `backend/package.json`
 - `backend/src/config.js`
 - `backend/src/payroll.js`
 - `backend/src/payroll-engine.js`
 - `backend/src/payroll-transaction.js`
 - `backend/src/server.js`
-- `frontend/index.html` — replace the current dashboard with the packaged version; it adds the `05 Payroll` button.
+- `frontend/index.html`
+- `frontend/payroll.html`
 
-Add:
+## Add
 - `backend/src/payroll-rules.js`
 - `backend/src/payroll-export.js`
-- `frontend/payroll.html`
+- `frontend/module.html`
 - `docs/PAYROLL_SPEC.md`
 
+## Menu fix
+`frontend/payroll.html` now makes all 02–08 sidebar menu items clickable. They open `frontend/module.html` with the appropriate module and read live Feishu data through `/api/sync`; no mock rows are generated.
+
+## Tax
+Tax is an accounting-supplied input. The payroll engine preserves the Tax amount from the verified source row/employee record and does not invent or calculate Thai PIT.
+
 ## Important
-
-1. Do not upload `.env`, passwords, Feishu App Secret, session secret, or PAYROLL_API_KEY.
-2. Render will run `npm install` and install the new `xlsx` dependency.
-3. Existing Feishu sync/auth code is not replaced.
-4. Payroll write remains fail-closed behind the existing production gates.
-5. Tax is preserved as an imported/manual input for now; the engine does not invent Thai PIT values.
-6. KPI/Commission amounts are read from verified PayrollItems source rows and are only paid when eligibility rules pass.
-
-## Payroll rules implemented
-
-- PayrollMonth is the payment month.
-- PerformanceMonth is the previous month.
-- KPI/Commission: employee must have JoinDate day 1 and at least 30 work days in PerformanceMonth.
-- STARLIVE = Starlive + Thaiteli.
-- IAMDP = Iamdp + Flying Fish.
-- Employee Welfare Fund: 0.25% each employee/employer from 2026-10 through 2031-09; 0.50% each from 2031-10, subject to legal coverage/eligibility.
-- Fixed XLSX export header is defined in `backend/src/payroll-export.js`.
-
-## Test performed before packaging
-
-- JavaScript syntax check: passed.
-- Payroll engine self-test: passed.
-- EWFund rate checks: 2026-10 = 0.25%, 2031-10 = 0.50%.
+Do not upload `.env`, passwords, Feishu App Secret, session secret, or PAYROLL_API_KEY.
