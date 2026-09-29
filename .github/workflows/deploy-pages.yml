@@ -1,0 +1,87 @@
+name: Deploy Frontend to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate frontend directory
+        shell: bash
+        run: |
+          test -d frontend || {
+            echo "ERROR: frontend directory not found"
+            exit 1
+          }
+
+      - name: Validate required frontend files
+        shell: bash
+        run: |
+          required_files="
+          frontend/index.html
+          frontend/login.html
+          frontend/config.js
+          frontend/api.js
+          "
+
+          for file in $required_files; do
+            if [ ! -f "$file" ]; then
+              echo "ERROR: Missing required file: $file"
+              exit 1
+            fi
+          done
+
+          echo "All required frontend files exist."
+
+      - name: Validate no Feishu secrets in frontend
+        shell: bash
+        run: |
+          if grep -R -nE \
+            "FEISHU_APP_SECRET|FEISHU_APP_ID|tenant_access_token" \
+            frontend/ 2>/dev/null; then
+            echo "ERROR: Feishu credential detected in frontend."
+            exit 1
+          fi
+
+          echo "No Feishu secrets detected in frontend."
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload frontend artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./frontend
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Deployment summary
+        run: |
+          echo "Deployment completed."
+          echo "URL: ${{ steps.deployment.outputs.page_url }}"
