@@ -1,64 +1,26 @@
-# Mac Feishu Payroll — Production Starter
+# MAC Feishu Payroll — V1.2 Release Bundle
 
-ระบบ Web Payroll ที่แยก Frontend (GitHub Pages) ออกจาก Backend Proxy เพื่อไม่เปิดเผย Feishu App Secret
+This bundle completes the current Payroll-first workflow without adding future HR modules.
 
-## Architecture
+## Replace/Add
+- Replace `backend/package.json`
+- Replace `backend/src/server.js`
+- Replace `backend/src/payroll-engine.js`
+- Replace `backend/src/payroll.js`
+- Replace `backend/src/payroll-export.js`
+- Add `backend/src/attendance-import.js`
+- Replace `frontend/module.html`
+- Keep the existing `frontend/payroll.html`, `frontend/index.html`, `frontend/employee.html`, `frontend/api.js`, `frontend/config.js`, and authentication files.
 
-GitHub Pages → Backend API → Feishu Open Platform → Bitable
+## New production behavior
+- Attendance/OT use the payroll month.
+- KPI/Commission eligibility uses the previous performance month.
+- Accounting-provided Tax is consumed as an input; no PIT calculation is invented.
+- STARLIVE export = full payroll income/deduction detail.
+- IAMDP export = KPI/Commission detail.
+- Attendance XLSX preview validates EmployeeID and canonical fields before any Feishu write.
+- Attendance write requires `ENABLE_ATTENDANCE_IMPORT=true`.
+- Existing Payroll write gate remains unchanged.
 
-## Modules
-
-1. Dashboard
-2. Companies
-3. Departments & Positions
-4. Employees
-5. AttendanceSummary
-6. Payroll Engine
-7. PayrollItems
-8. Payslips
-9. Feishu Sync
-10. Bot Notification
-11. Audit / Health
-12. Security & Configuration
-
-## Repository
-
-https://github.com/Mccyver-dev1/Payroll-st-dp
-
-## Frontend
-
-`frontend/index.html`
-
-## Backend
-
-`backend/`
-
-Run:
-
-```bash
-cd backend
-npm install
-copy .env.example .env
-npm start
-```
-
-The frontend uses `API_BASE_URL` in `frontend/config.js`.
-
-## Important
-
-Do not put `FEISHU_APP_SECRET` in GitHub Pages, HTML, JavaScript, or any public repository file.
-
-The current bundle intentionally contains no secret.
-
-## Feishu
-
-The backend obtains `tenant_access_token` server-side and calls Bitable APIs. The application must have the required Bitable permissions and a published version before production API use.
-
-## Deployment
-
-Recommended simple deployment:
-- Frontend: GitHub Pages
-- Backend: Render / Railway / Fly.io / VPS
-- Secrets: backend environment variables
-
-See `docs/DEPLOYMENT.md`.
+## Render environment
+Set `ENABLE_ATTENDANCE_IMPORT=true` only when the AttendanceSummary schema has the required writable fields and you are ready to import real reports.

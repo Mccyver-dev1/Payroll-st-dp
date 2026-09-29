@@ -1,109 +1,12 @@
 import { config } from './config.js';
 
 const n = v => Number(v ?? 0) || 0;
+const pick = (fields, ...names) => { for (const name of names) if (fields?.[name] !== undefined && fields?.[name] !== null && fields?.[name] !== '') return fields[name]; return 0; };
+const text = (fields, ...names) => { for (const name of names) if (fields?.[name] !== undefined && fields?.[name] !== null) return String(fields[name]); return ''; };
 
-const pick = (fields, ...names) => {
-  for (const name of names) {
-    if (fields?.[name] !== undefined && fields?.[name] !== null && fields?.[name] !== '') {
-      return fields[name];
-    }
-  }
-  return 0;
-};
-
-const text = (fields, ...names) => {
-  for (const name of names) {
-    if (fields?.[name] !== undefined && fields?.[name] !== null) {
-      return String(fields[name]);
-    }
-  }
-  return '';
-};
-
-export function normalizeEmployees(records) {
-  return records.map(r => {
-    const f = r.fields || {};
-    return {
-      recordId: r.record_id || r.id,
-      employeeId: text(f, 'EmployeeID', 'Employee ID', 'Emp ID', 'รหัสพนักงาน'),
-      name: text(f, 'Name', 'Employee Name', 'ชื่อ-นามสกุล', 'ชื่อพนักงาน', '姓名'),
-      nickname: text(f, 'Nickname', 'NickName', 'ชื่อเล่น', '简称'),
-      company: text(f, 'Company', 'Company Name', 'บริษัท', '公司'),
-      department: text(f, 'Department', 'Dept', 'แผนก'),
-      position: text(f, 'Position', 'Job Position', 'ตำแหน่ง', '岗位'),
-      salary: n(pick(f, 'Salary', 'Base Salary', 'เงินเดือน', 'เงินเดือนพื้นฐาน', '基本工资')),
-      joinDate: pick(f, 'JoinDate', 'Join Date', 'วันที่เริ่มงาน', '入职日期'),
-      status: text(f, 'Status', 'Employee Status', 'สถานะ', '状态'),
-      bankAccount: text(f, 'BankAccount', 'Bank Account', 'AC/ BANK', 'บัญชีธนาคาร', '银行账号'),
-      kpiEligible: pick(f, 'KPIEligible', 'KPI Eligible', 'KPI', 'KPI Eligibility'),
-      commissionEligible: pick(f, 'CommissionEligible', 'Commission Eligible', '提成'),
-      openId: text(f, 'OpenID', 'open_id', 'Feishu Open ID')
-    };
-  });
-}
-
-export function normalizeCompanies(records) {
-  return records.map(r => {
-    const f = r.fields || {};
-    return {
-      recordId: r.record_id || r.id,
-      companyId: text(f, 'CompanyID', 'Company ID', 'รหัสบริษัท'),
-      name: text(f, 'Name', 'Company Name', 'ชื่อบริษัท'),
-      taxId: text(f, 'TaxID', 'Tax ID', 'เลขประจำตัวผู้เสียภาษี')
-    };
-  });
-}
-
-export function normalizeAttendance(records) {
-  return records.map(r => {
-    const f = r.fields || {};
-    return {
-      recordId: r.record_id || r.id,
-      employeeId: text(f, 'EmployeeID', 'Employee ID', 'Emp ID', 'รหัสพนักงาน'),
-      month: text(f, 'PayrollMonth', 'Month', 'เดือน'),
-      workDays: n(pick(f, 'WorkDays', 'Working Days', 'วันทำงาน')),
-      otHours: n(pick(f, 'OT_Hours', 'OT Hours', 'OT', 'OT_Hours_Total')),
-      lateMinutes: n(pick(f, 'LateMinutes', 'Late Minutes', 'สาย')),
-      absentDays: n(pick(f, 'AbsentDays', 'Absent Days', 'ขาดงาน')),
-      leaveDays: n(pick(f, 'LeaveDays', 'Leave Days', 'วันลา'))
-    };
-  });
-}
-
-export function normalizePayrollItems(records) {
-  return records.map(r => {
-    const f = r.fields || {};
-    return {
-      recordId: r.record_id || r.id,
-      payrollId: text(f, 'PayrollID', 'Payroll ID'),
-      employeeId: text(f, 'EmployeeID', 'Employee ID', 'Emp ID', 'รหัสพนักงาน'),
-      performanceMonth: text(f, 'PerformanceMonth', 'Performance Month', 'KPI Month', 'ประเมินเดือน'),
-      payrollMonth: text(f, 'PayrollMonth', 'Month', 'เดือนจ่าย'),
-      allowances: n(pick(f, 'Allowances', 'Allowance', 'เบี้ยเลี้ยง')),
-      bonus: n(pick(f, 'Bonus', 'โบนัส', 'Other Bonus')),
-      commission: n(pick(f, 'Commission', 'CommissionAmount', 'ค่าคอมมิชชั่น', '提成')),
-      onlineCommission: n(pick(f, 'OnlineCommission', 'Online Commission', '线上提成')),
-      offlineCommission: n(pick(f, 'OfflineCommission', 'Offline Commission', '线下提成')),
-      kpi: n(pick(f, 'KPI', 'KPI Pay', 'KPIAmount', 'ค่าผลงาน', 'ค่า KPI')),
-      fixedKpi: n(pick(f, 'FixedKPI', 'Fixed KPI', '固定KPI')),
-      variableKpi: n(pick(f, 'VariableKPI', 'Variable KPI', '变动KPI')),
-      deductions: n(pick(f, 'Deduction', 'Deductions', 'หักอื่นๆ')),
-      tax: n(pick(f, 'Tax', 'WithholdingTax', 'ภาษี')),
-      welfareFundEligible: pick(f, 'WelfareFundEligible', 'EWFundEligible'),
-      kpiEligible: pick(f, 'KPIEligible', 'KPI Eligible'),
-      commissionEligible: pick(f, 'CommissionEligible', 'Commission Eligible')
-    };
-  });
-}
-
-export function calculateSocialSecurity(wageBase) {
-  const base = Math.min(
-    Math.max(n(wageBase), config.payroll.ssoMinimumWageBase),
-    config.payroll.ssoWageCap
-  );
-  return Math.round(base * config.payroll.ssoRate);
-}
-
-export function calculateOTPay(salary, otHours) {
-  return n(otHours) * (n(salary) / config.payroll.otDivisor) * config.payroll.otMultiplier;
-}
+export function normalizeEmployees(records) { return records.map(r => { const f=r.fields||{}; return { recordId:r.record_id||r.id, employeeId:text(f,'EmployeeID','Employee ID','Emp ID','รหัสพนักงาน'), name:text(f,'Name','Employee Name','ชื่อ-นามสกุล','ชื่อพนักงาน','姓名'), nickname:text(f,'Nickname','NickName','ชื่อเล่น','简称'), company:text(f,'Company','Company Name','บริษัท','公司'), department:text(f,'Department','Dept','แผนก'), position:text(f,'Position','Job Position','ตำแหน่ง','岗位'), salary:n(pick(f,'Salary','Base Salary','เงินเดือน','เงินเดือนพื้นฐาน','基本工资')), joinDate:pick(f,'JoinDate','Join Date','วันที่เริ่มงาน','入职日期'), status:text(f,'Status','Employee Status','สถานะ','状态'), bankAccount:text(f,'BankAccount','Bank Account','AC/ BANK','บัญชีธนาคาร','银行账号'), tax:n(pick(f,'Tax','WithholdingTax','ภาษี')), kpiEligible:pick(f,'KPIEligible','KPI Eligible','KPI','KPI Eligibility'), commissionEligible:pick(f,'CommissionEligible','Commission Eligible','提成'), openId:text(f,'OpenID','open_id','Feishu Open ID') }; }); }
+export function normalizeCompanies(records){return records.map(r=>{const f=r.fields||{};return {recordId:r.record_id||r.id,companyId:text(f,'CompanyID','Company ID','รหัสบริษัท'),name:text(f,'Name','Company Name','ชื่อบริษัท'),taxId:text(f,'TaxID','Tax ID','เลขประจำตัวผู้เสียภาษี')}})}
+export function normalizeAttendance(records){return records.map(r=>{const f=r.fields||{};return {recordId:r.record_id||r.id,employeeId:text(f,'EmployeeID','Employee ID','Emp ID','รหัสพนักงาน'),month:text(f,'PayrollMonth','Month','เดือน'),workDays:n(pick(f,'WorkDays','Working Days','วันทำงาน')),otHours:n(pick(f,'OT_Hours','OT Hours','OT','OT_Hours_Total')),lateMinutes:n(pick(f,'LateMinutes','Late Minutes','สาย')),absentDays:n(pick(f,'AbsentDays','Absent Days','ขาดงาน')),leaveDays:n(pick(f,'LeaveDays','Leave Days','วันลา'))}})}
+export function normalizePayrollItems(records){return records.map(r=>{const f=r.fields||{};return {recordId:r.record_id||r.id,payrollId:text(f,'PayrollID','Payroll ID'),employeeId:text(f,'EmployeeID','Employee ID','Emp ID','รหัสพนักงาน'),performanceMonth:text(f,'PerformanceMonth','Performance Month','KPI Month','ประเมินเดือน'),payrollMonth:text(f,'PayrollMonth','Month','เดือนจ่าย'),allowances:n(pick(f,'Allowances','Allowance','เบี้ยเลี้ยง')),bonus:n(pick(f,'Bonus','โบนัส','Other Bonus')),commission:n(pick(f,'Commission','CommissionAmount','ค่าคอมมิชชั่น','提成')),onlineCommission:n(pick(f,'OnlineCommission','Online Commission','线上提成')),offlineCommission:n(pick(f,'OfflineCommission','Offline Commission','线下提成')),kpi:n(pick(f,'KPI','KPI Pay','KPIAmount','ค่าผลงาน','ค่า KPI')),fixedKpi:n(pick(f,'FixedKPI','Fixed KPI','固定KPI')),variableKpi:n(pick(f,'VariableKPI','Variable KPI','变动KPI')),deductions:n(pick(f,'Deduction','Deductions','หักอื่นๆ')),tax:n(pick(f,'Tax','WithholdingTax','ภาษี')),welfareFundEligible:pick(f,'WelfareFundEligible','EWFundEligible'),kpiEligible:pick(f,'KPIEligible','KPI Eligible'),commissionEligible:pick(f,'CommissionEligible','Commission Eligible')}})}
+export function calculateSocialSecurity(wageBase){const base=Math.min(Math.max(n(wageBase),config.payroll.ssoMinimumWageBase),config.payroll.ssoWageCap);return Math.round(base*config.payroll.ssoRate);}
+export function calculateOTPay(salary,otHours){return n(otHours)*(n(salary)/config.payroll.otDivisor)*config.payroll.otMultiplier;}

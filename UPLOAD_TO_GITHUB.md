@@ -1,26 +1,46 @@
-# MAC Feishu Payroll — Payroll Engine v1.1 release
+# Upload — MAC Feishu Payroll V1.2
 
-## Replace
-- `backend/package.json`
-- `backend/src/config.js`
-- `backend/src/payroll.js`
-- `backend/src/payroll-engine.js`
+Repository: `Mccyver-dev1/Payroll-st-dp` / branch `main`
+
+## Replace these existing files
+1. `backend/package.json`
+2. `backend/src/server.js`
+3. `backend/src/payroll-engine.js`
+4. `backend/src/payroll.js`
+5. `backend/src/payroll-export.js`
+6. `backend/src/config.js`
+7. `backend/src/payroll-rules.js`
+8. `frontend/module.html`
+
+## Add this file
+9. `backend/src/attendance-import.js`
+
+## Keep unchanged
+- `backend/src/feishu.js`
+- `backend/src/feishu-write.js`
+- `backend/src/auth.js`
+- `backend/src/security.js`
 - `backend/src/payroll-transaction.js`
-- `backend/src/server.js`
-- `frontend/index.html`
+- `backend/src/payroll-control.js`
+- `backend/src/payroll-run-persistence.js`
+- `frontend/api.js`
+- `frontend/config.js`
+- `frontend/login.html`
 - `frontend/payroll.html`
+- `frontend/index.html`
 
-## Add
-- `backend/src/payroll-rules.js`
-- `backend/src/payroll-export.js`
-- `frontend/module.html`
-- `docs/PAYROLL_SPEC.md`
+## Render
+After GitHub Pages/backend deploy, Attendance XLSX **Preview** works without write permission.
+To allow the final `Import to Feishu` action, set:
 
-## Menu fix
-`frontend/payroll.html` now makes all 02–08 sidebar menu items clickable. They open `frontend/module.html` with the appropriate module and read live Feishu data through `/api/sync`; no mock rows are generated.
+`ENABLE_ATTENDANCE_IMPORT=true`
 
-## Tax
-Tax is an accounting-supplied input. The payroll engine preserves the Tax amount from the verified source row/employee record and does not invent or calculate Thai PIT.
+Do not enable it until the AttendanceSummary fields have been checked in `08 Settings` / Feishu schema.
 
-## Important
-Do not upload `.env`, passwords, Feishu App Secret, session secret, or PAYROLL_API_KEY.
+## What changed
+- Payroll month Attendance/Leave/OT is now calculated from the payroll month.
+- KPI/Commission eligibility uses the previous performance month.
+- Accounting-provided Tax is treated as an input; no PIT formula is generated.
+- STARLIVE export keeps full income/deduction detail.
+- IAMDP export is KPI/Commission-focused.
+- Attendance XLSX has a real preview/validation/import workflow.
