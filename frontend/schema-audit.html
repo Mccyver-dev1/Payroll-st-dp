@@ -3,60 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mac Feishu Payroll — Schema Audit</title>
-<style>
-body{font-family:Arial,sans-serif;background:#0b1220;color:#e8eef8;margin:0}
-main{max-width:1200px;margin:32px auto;padding:0 20px}
-.card{background:#111b2e;border:1px solid #263653;border-radius:14px;padding:18px;margin:14px 0}
-button{padding:10px 16px;border:0;border-radius:8px;cursor:pointer}
-.ok{color:#63e6be}.warn{color:#ffd166}.critical{color:#ff7b7b}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-table{width:100%;border-collapse:collapse}th,td{padding:9px;border-bottom:1px solid #263653;text-align:left}
-small{color:#91a4c0}
-pre{white-space:pre-wrap}
-@media(max-width:800px){.grid{grid-template-columns:1fr 1fr}}
-</style>
+<meta http-equiv="refresh" content="0;url=./module.html?module=settings">
+<title>MAC FEISHU PAYROLL — Settings</title>
 </head>
 <body>
-<main>
-<h1>Mac Feishu Payroll — STEP 3 Schema Audit</h1>
-<p><small>Read-only: ตรวจโครงสร้าง Field / Type / Link / Lookup / Formula และความพร้อม Payroll</small></p>
-<button id="run">Run Schema Audit</button>
-<button id="export">Export JSON</button>
-<div id="out"></div>
-</main>
-<script>
-let last=null;
-const $=id=>document.getElementById(id);
-function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-async function run(){
-  $('out').innerHTML='<div class="card">กำลังอ่าน Schema จาก Backend...</div>';
-  try{
-    const r=await fetch('/api/schema-audit'); last=await r.json();
-    if(!last.ok) throw new Error(last.error);
-    const x=last.report;
-    let h=`<div class="grid">
-      <div class="card"><b>Canonical</b><h2>${x.summary.canonicalFound}/${x.summary.canonicalTotal}</h2></div>
-      <div class="card"><b>Critical</b><h2 class="critical">${x.summary.criticalCount}</h2></div>
-      <div class="card"><b>Warnings</b><h2 class="warn">${x.summary.warningCount}</h2></div>
-      <div class="card"><b>Payroll Tables</b><h2>${x.summary.payrollTablesReviewed}</h2></div>
-    </div>`;
-    h+='<div class="card"><h2>Critical</h2>';
-    h+=x.critical.length?'<ul>'+x.critical.map(v=>`<li class="critical">${esc(v)}</li>`).join('')+'</ul>':'<p class="ok">No critical findings detected by current rules.</p>';
-    h+='</div><div class="card"><h2>Payroll Readiness</h2><table><tr><th>Table</th><th>Status</th><th>Missing</th><th>Type Mismatch</th></tr>';
-    for(const r of x.payrollReadiness) h+=`<tr><td>${esc(r.table)}</td><td>${esc(r.status)}</td><td>${esc(r.missing.join(', ')||'-')}</td><td>${esc(r.type_mismatches.map(v=>v.field+': '+v.actual).join(', ')||'-')}</td></tr>`;
-    h+='</table></div><div class="card"><h2>Field Inventory</h2>';
-    for(const [k,t] of Object.entries(x.canonicalTables)){
-      h+=`<h3>${esc(k)} <small>${esc(t.table_id||'NOT FOUND')}</small></h3><table><tr><th>Field</th><th>Type</th><th>Primary</th></tr>`;
-      for(const f of t.fields) h+=`<tr><td>${esc(f.field_name)}</td><td>${esc(f.type_label)}</td><td>${f.is_primary?'YES':''}</td></tr>`;
-      h+='</table>';
-    }
-    h+='</div>';
-    $('out').innerHTML=h;
-  }catch(e){$('out').innerHTML=`<div class="card critical">${esc(e.message)}</div>`}
-}
-$('run').onclick=run;
-$('export').onclick=()=>{if(!last)return alert('Run audit first');const b=new Blob([JSON.stringify(last,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='MAC-FEISHU-PAYROLL-SCHEMA-AUDIT.json';a.click();};
-</script>
+<p>Opening shared Settings...</p>
+<script>location.replace('./module.html?module=settings');</script>
 </body>
 </html>

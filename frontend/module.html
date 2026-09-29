@@ -1,26 +1,470 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mac Feishu Payroll — Module</title>
-<style>:root{--nav:#172554;--nav2:#1e3a8a;--bg:#f5f7fb;--card:#fff;--line:#e5e7eb;--text:#172033;--muted:#64748b;--ok:#087f5b;--bad:#c92a2a}*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}.app{display:flex;min-height:100vh}.side{width:220px;background:var(--nav);color:#fff;padding:18px 12px;position:fixed;inset:0 auto 0 0}.brand{font-weight:800;font-size:18px;padding:4px 10px 18px}.brand small{display:block;font-weight:500;font-size:11px;opacity:.7;margin-top:3px}.nav{display:grid;gap:6px}.nav a{color:#dbeafe;text-decoration:none;padding:11px 12px;border-radius:9px;font-size:14px}.nav a.active{background:#fff;color:var(--nav);font-weight:700}.main{margin-left:220px;width:calc(100% - 220px)}.top{background:#fff;border-bottom:1px solid var(--line);padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:5}.title b{font-size:18px}.title span{display:block;color:var(--muted);font-size:12px}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid #cbd5e1;background:#fff;padding:9px 12px;border-radius:9px;cursor:pointer}.btn.primary{background:var(--nav2);color:#fff;border-color:var(--nav2)}.wrap{padding:20px}.status,.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}.ok{color:var(--ok)}.bad{color:var(--bad)}.muted{color:var(--muted)}.months{display:grid;grid-template-columns:repeat(12,minmax(65px,1fr));gap:6px;margin-bottom:14px}.month{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 4px;cursor:pointer;font-size:12px}.month.active{background:var(--nav2);color:#fff}.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px}.card small{color:var(--muted);display:block}.card strong{font-size:20px;display:block;margin-top:4px}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px}.table{width:100%;border-collapse:collapse;min-width:1100px;background:#fff}.table th,.table td{padding:8px 9px;border-bottom:1px solid #eef2f7;text-align:left;font-size:12px;white-space:nowrap}.table th{background:#f8fafc;position:sticky;top:0}.tag{padding:3px 7px;border-radius:999px;background:#eef2ff;font-size:11px}.tag.ok{background:#dcfce7}.tag.warn{background:#fef3c7}.upload{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.file{max-width:340px}.notice{padding:10px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:8px;margin-bottom:10px}@media(max-width:900px){.side{width:180px}.main{margin-left:180px;width:calc(100% - 180px)}.cards{grid-template-columns:repeat(2,1fr)}.months{grid-template-columns:repeat(6,1fr)}}</style></head>
-<body><div class="app"><aside class="side"><div class="brand">MAC FEISHU PAYROLL<small>Production Payroll</small></div><nav class="nav"><a href="./index.html">01 Dashboard</a><a id="nav-employee" href="./module.html?module=employee">02 Employee</a><a id="nav-attendance" href="./module.html?module=attendance">03 Attendance</a><a id="nav-kpi" href="./module.html?module=kpi">04 KPI / Commission</a><a href="./payroll.html">05 Payroll</a><a id="nav-payslip" href="./module.html?module=payslip">06 Payslip</a><a id="nav-reports" href="./module.html?module=reports">07 Reports</a><a id="nav-settings" href="./module.html?module=settings">08 Settings</a></nav></aside>
-<main class="main"><header class="top"><div class="title"><b id="title">Module</b><span id="subtitle">Live Feishu data · no mock rows</span></div><div class="actions"><button class="btn" id="refresh">↻ Refresh</button><button class="btn" id="logout">ออกจากระบบ</button></div></header><div class="wrap"><div class="months" id="months"></div><div class="status" id="status">ตรวจสอบ Session...</div><div class="cards" id="cards"></div><section class="panel"><h3 id="heading"></h3><div id="toolbar"></div><div id="content" class="muted">กำลังโหลดข้อมูลจริง...</div></section></div></main></div>
-<script src="./config.js"></script><script type="module">import{apiFetch}from'./api.js';
-const $=id=>document.getElementById(id),q=new URLSearchParams(location.search),module=q.get('module')||'employee',year=new Date().getFullYear();let month=q.get('month')||`${year}-${String(new Date().getMonth()+1).padStart(2,'0')}`;let syncData=null;
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MAC FEISHU PAYROLL</title>
+<style>
+:root{--nav:#172554;--nav2:#1e3a8a;--bg:#f5f7fb;--card:#fff;--line:#e5e7eb;--text:#172033;--muted:#64748b;--ok:#087f5b;--bad:#c92a2a}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+.app{display:flex;min-height:100vh}.side{width:220px;background:var(--nav);color:#fff;padding:18px 12px;position:fixed;inset:0 auto 0 0;overflow:auto}.brand{font-weight:800;font-size:18px;padding:4px 10px 18px}.brand small{display:block;font-weight:500;font-size:11px;opacity:.7;margin-top:3px}.nav{display:grid;gap:6px}.nav a{color:#dbeafe;text-decoration:none;padding:11px 12px;border-radius:9px;font-size:14px}.nav a.active{background:#fff;color:var(--nav);font-weight:700}
+.main{margin-left:220px;width:calc(100% - 220px);min-width:0}.top{background:#fff;border-bottom:1px solid var(--line);padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:5}.title b{font-size:18px}.title span{display:block;color:var(--muted);font-size:12px;margin-top:2px}.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.btn{border:1px solid #cbd5e1;background:#fff;padding:9px 12px;border-radius:9px;cursor:pointer;color:inherit}.btn.primary{background:var(--nav2);color:#fff;border-color:var(--nav2)}.btn:disabled{opacity:.5;cursor:not-allowed}
+.wrap{padding:20px}.status,.panel,.period{background:var(--card);border:1px solid var(--line);border-radius:12px}.status{padding:12px 14px;margin-bottom:14px}.status.loading{color:var(--muted)}.status.connected{color:var(--ok)}.status.error,.error{color:var(--bad)}.muted{color:var(--muted)}.period{padding:12px;margin-bottom:14px}.month-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:10px}.month-year{width:100px;border:1px solid #cbd5e1;border-radius:8px;padding:7px}.months{display:grid;grid-template-columns:repeat(12,minmax(65px,1fr));gap:6px}.month{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 4px;cursor:pointer;font-size:12px}.month.active{background:var(--nav2);color:#fff;border-color:var(--nav2)}
+.panel{padding:14px;margin-bottom:14px;min-width:0}.panel h2,.panel h3{margin:0 0 12px}.panel h2{font-size:17px}.toolbar,.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.search,.select,.month-input{border:1px solid #cbd5e1;border-radius:8px;padding:9px;background:#fff}.search{min-width:min(280px,100%)}.upload{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.file{max-width:340px}.notice{padding:10px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:8px;margin-bottom:10px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin-bottom:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px}.card small{color:var(--muted);display:block}.card strong{font-size:20px;display:block;margin-top:4px}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px}.table{width:100%;border-collapse:collapse;min-width:760px;background:#fff}.table th,.table td{padding:8px 9px;border-bottom:1px solid #eef2f7;text-align:left;font-size:12px;white-space:nowrap}.table th{background:#f8fafc;position:sticky;top:0}.num{text-align:right!important}.tag{padding:3px 7px;border-radius:999px;font-size:11px;background:#eef2ff}.tag.ok{background:#dcfce7;color:#166534}.tag.warn{background:#fef3c7;color:#92400e}.empty{padding:30px;text-align:center;color:var(--muted)}pre{white-space:pre-wrap;overflow:auto}
+@media(max-width:900px){.side{width:180px}.main{margin-left:180px;width:calc(100% - 180px)}.months{grid-template-columns:repeat(6,1fr)}}
+@media(max-width:600px){.side{width:64px;padding:12px 6px}.brand{font-size:0;padding:6px}.brand:before{content:"MAC";font-size:14px}.brand small{display:none}.nav a{font-size:0;text-align:center;padding:12px 4px}.nav a:before{content:attr(data-number);font-size:13px}.main{margin-left:64px;width:calc(100% - 64px)}.top{align-items:flex-start;padding:12px}.wrap{padding:12px}.title b{font-size:16px}.months{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <div class="brand">MAC FEISHU PAYROLL<small>Production Payroll</small></div>
+  <nav class="nav" aria-label="Main navigation">
+    <a href="./module.html?module=dashboard" data-number="01">01 Dashboard</a>
+    <a href="./module.html?module=employee" data-number="02">02 Employee</a>
+    <a href="./module.html?module=attendance" data-number="03">03 Attendance</a>
+    <a href="./module.html?module=kpi" data-number="04">04 KPI / Commission</a>
+    <a href="./module.html?module=payroll" data-number="05">05 Payroll</a>
+    <a href="./module.html?module=payslip" data-number="06">06 Payslip</a>
+    <a href="./module.html?module=reports" data-number="07">07 Reports</a>
+    <a href="./module.html?module=settings" data-number="08">08 Settings</a>
+  </nav>
+</aside>
+<main class="main">
+  <header class="top">
+    <div class="title"><b id="title">MAC FEISHU PAYROLL</b><span id="subtitle">Live Feishu data</span></div>
+    <div class="actions"><span id="user"></span><button class="btn" id="refresh">↻ Refresh</button><button class="btn" id="logout">ออกจากระบบ</button></div>
+  </header>
+  <div class="wrap">
+    <div class="status loading" id="connectionStatus" role="status" aria-live="polite">กำลังตรวจสอบ Session...</div>
+    <div class="period" id="period" hidden><div class="month-toolbar"><label for="monthYear">Year</label><input class="month-year" id="monthYear" type="number" min="1900" max="9999" step="1"></div><div class="months" id="months"></div></div>
+    <div id="content" aria-live="polite"><section class="panel muted">กำลังโหลดข้อมูลจริงจาก Feishu...</section></div>
+  </div>
+</main>
+</div>
+<script src="./config.js"></script>
+<script type="module">
+import {apiFetch} from './api.js';
+
 const MONTHS=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-const META={employee:['02 Employee','Employee Master'],attendance:['03 Attendance','Attendance / Leave / OT'],kpi:['04 KPI / Commission','KPI / Commission'],payslip:['06 Payslip','Payslip / Payroll'],reports:['07 Reports','Reports'],settings:['08 Settings','System Settings']};
-const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));const money=v=>Number(v||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});const val=(f,n)=>{const v=f?.[n];if(Array.isArray(v))return v.map(x=>typeof x==='object'?(x.text||x.name||x.id||''):x).join(', ');return typeof v==='object'?(v?.text||v?.name||v?.id||''):v??''};
-function nav(){document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));document.getElementById('nav-'+module)?.classList.add('active')}
-function months(){if(module==='settings'){$('months').innerHTML='';return}$('months').innerHTML=MONTHS.map((m,i)=>{const k=`${year}-${String(i+1).padStart(2,'0')}`;return `<button class="month ${k===month?'active':''}" data-m="${k}">${m}</button>`}).join('');document.querySelectorAll('.month').forEach(b=>b.onclick=()=>{month=b.dataset.m;history.replaceState(null,'',`module.html?module=${module}&month=${month}`);months();load()})}
-function cards(d){const keys=['companies','departments','positions','employees','attendanceSummary','payroll','payrollItems','payslips'];$('cards').innerHTML=keys.map(k=>`<div class="card"><small>${k}</small><strong>${Number(d[k]?.count||0)}</strong><small>${esc(d[k]?.status||'')}</small></div>`).join('')}
-function generic(rows,headers){if(!rows.length)return '<div class="muted">ไม่พบข้อมูลจริง</div>';const keys=headers||[...new Set(rows.flatMap(r=>Object.keys(r.fields||{})))].slice(0,18);return `<div class="tablewrap"><table class="table"><thead><tr><th>Record ID</th>${keys.map(k=>`<th>${esc(k)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.record_id)}</td>${keys.map(k=>`<td>${esc(val(r.fields,k))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`}
-function employeeView(rows){const headers=['EmployeeID','Name','Nickname','Company','Department','Position','JoinDate','Salary','Status Employees','Status'];return `<div class="notice">ข้อมูลพนักงานอ่านจาก Feishu Base โดยตรง · ${rows.length} records</div>${generic(rows,headers)}`}
-function attendanceView(){return `<div class="notice">นำเข้าไฟล์ .xlsx จาก Feishu Attendance Statistics Report แล้วกด Preview ก่อน หากตรวจสอบผ่านจึงกด Import to Feishu</div><div class="upload"><input class="file" id="file" type="file" accept=".xlsx,.xls"><button class="btn primary" id="previewImport">Preview XLSX</button><button class="btn" id="commitImport">Import to Feishu</button></div><div id="importResult" style="margin-top:12px"></div>${generic(syncData?.attendanceSummary?.records||[])}`}
-function kpiView(){return `<div class="notice">KPI / Commission ของเดือนที่เลือกจะอ้างอิง Performance Month = เดือนก่อนหน้า และตรวจสิทธิ์จาก JoinDate + WorkDays ครบ 30 วัน</div><button class="btn primary" id="previewKpi">ตรวจ Eligibility / KPI เดือน ${esc(month)}</button><div id="kpiResult" style="margin-top:12px"></div>`}
-function payslipView(){return `<div class="notice">Payslip ใช้ Payroll ที่คำนวณจากข้อมูลจริง ไม่สร้างข้อมูลจำลอง</div>${generic(syncData?.payslips?.records?.length?syncData.payslips.records:syncData?.payroll?.records||[])}`}
-function reportsView(){return `<div class="notice">รายงาน Payroll สามารถดาวน์โหลดแยก STARLIVE และ IAMDP จากหน้า 05 Payroll</div>${generic(syncData?.payroll?.records||[])}`}
-function settingsView(){return `<div class="notice"><b>Production configuration</b><br>Secrets ไม่แสดงใน Browser และไม่สามารถแก้จากหน้าเว็บนี้</div><p>Feishu: <span class="tag ok">Connected</span></p><p>Payroll write: server-side gate</p><p>Attendance import: server-side gate</p>`}
-function render(){const d=syncData?.data||{};cards(d);if(module==='employee')$('content').innerHTML=employeeView(d.employees?.records||[]);else if(module==='attendance'){$('content').innerHTML=attendanceView();bindAttendance()}else if(module==='kpi'){$('content').innerHTML=kpiView();bindKpi()}else if(module==='payslip')$('content').innerHTML=payslipView();else if(module==='reports')$('content').innerHTML=reportsView();else if(module==='settings')$('content').innerHTML=settingsView()}
-async function load(){ $('status').textContent='กำลังอ่านข้อมูลจริงจาก Feishu...';try{const r=await apiFetch('/api/sync');const j=await r.json();if(!j.ok)throw new Error(j.error||'Sync failed');syncData=j;$('status').innerHTML='<span class="ok">● Connected</span> · '+new Date(j.syncedAt).toLocaleString('th-TH');render()}catch(e){$('status').innerHTML='<span class="bad">● Feishu Sync failed</span> · '+esc(e.message);$('content').innerHTML='<div class="bad">ไม่มีการแสดงข้อมูลจำลอง</div>'}}
-async function bindAttendance(){const preview=async(commit)=>{const f=$('file').files[0];if(!f){$('importResult').innerHTML='<span class="bad">เลือกไฟล์ XLSX ก่อน</span>';return}const fd=new FormData();fd.append('file',f);fd.append('month',month);const url=commit?'/api/attendance/import?commit=true':'/api/attendance/import';$('importResult').textContent=commit?'กำลัง Import เข้า Feishu...':'กำลังตรวจสอบ XLSX...';try{const r=await apiFetch(url,{method:'POST',body:fd});const j=await r.json();if(!j.ok)throw new Error(j.error||'Import failed');$('importResult').innerHTML=`<div class="tag ok">${esc(j.mode||'PREVIEW')} · ${Number(j.parsed?.rowCount||0)} rows</div><pre style="white-space:pre-wrap">${esc(JSON.stringify(j.validation||j.result||{},null,2))}</pre>`;if(commit)load()}catch(e){$('importResult').innerHTML='<span class="bad">'+esc(e.message)+'</span>'}};$('previewImport').onclick=()=>preview(false);$('commitImport').onclick=()=>preview(true)}
-async function bindKpi(){$('previewKpi').onclick=async()=>{const el=$('kpiResult');el.textContent='กำลังตรวจ...';try{const r=await apiFetch(`/api/payroll-preview/${month}`);const j=await r.json();if(!j.ok)throw new Error(j.error||'Preview failed');const rows=j.transaction.rows||[];const eligible=rows.filter(x=>x.kpiEligible||x.commissionEligible);el.innerHTML=`<div class="tag ok">${eligible.length} eligible / ${rows.length} employees</div><div class="tablewrap"><table class="table"><thead><tr>${['employeeId','name','company','position','performanceMonth','performanceWorkDays','kpiEligible','commissionEligible','kpi','commission','eligibilityReason'].map(k=>`<th>${esc(k)}</th>`).join('')}</tr></thead><tbody>${eligible.map(x=>`<tr>${[x.employeeId,x.name,x.company,x.position,x.performanceMonth,x.performanceWorkDays,x.kpiEligible?'YES':'NO',x.commissionEligible?'YES':'NO',money(x.kpi),money(x.commission),x.eligibilityReason].map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`}catch(e){el.innerHTML='<span class="bad">'+esc(e.message)+'</span>'}}}
-async function session(){try{const r=await apiFetch('/api/auth/status');const j=await r.json();if(!j.authenticated){location.href='login.html';return false}return true}catch{return false}}
-$('title').textContent=META[module]?.[0]||'Module';$('heading').textContent=META[module]?.[1]||'Module';nav();months();$('refresh').onclick=load;$('logout').onclick=async()=>{try{await apiFetch('/api/auth/logout',{method:'POST'})}finally{location.href='login.html'}};session().then(ok=>ok&&load());
-</script></body></html>
+const MODULES={
+  dashboard:{title:'01 Dashboard',subtitle:'Feishu connection and source-table overview'},
+  employee:{title:'02 Employee',subtitle:'Employee master data from Feishu Base'},
+  attendance:{title:'03 Attendance',subtitle:'AttendanceSummary data and controlled XLSX import'},
+  kpi:{title:'04 KPI / Commission',subtitle:'Eligibility and amounts using the previous performance month'},
+  payroll:{title:'05 Payroll',subtitle:'Payroll calculation, run control, and official exports'},
+  payslip:{title:'06 Payslip',subtitle:'Existing payslip records from Feishu Base'},
+  reports:{title:'07 Reports',subtitle:'Persisted Payroll records from Feishu Base'},
+  settings:{title:'08 Settings',subtitle:'Production configuration and table availability'}
+};
+const MONTH_MODULES=new Set(['attendance','kpi','payroll','payslip','reports']);
+const params=new URLSearchParams(location.search);
+const requestedModule=params.get('module')||'dashboard';
+const moduleName=Object.hasOwn(MODULES,requestedModule)?requestedModule:'dashboard';
+const now=new Date();
+let month=/^\d{4}-(0[1-9]|1[0-2])$/.test(params.get('month')||'')?params.get('month'):`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+let syncData=null;
+let currentUser='';
+let payrollPrepared=null;
+const $=id=>document.getElementById(id);
+const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
+const value=(fields,names)=>{
+  for(const name of names){
+    const v=fields?.[name];
+    if(v===undefined||v===null||v==='')continue;
+    if(Array.isArray(v))return v.map(item=>item&&typeof item==='object'?(item.text||item.name||item.id||''):item).join(', ');
+    if(typeof v==='object')return v.text||v.name||v.id||'';
+    return v;
+  }
+  return '';
+};
+const money=value=>{const n=Number(value);return Number.isFinite(n)?n.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}):esc(value)};
+function monthFromDateParts(year,month,day){
+  if(!Number.isInteger(year)||year<1||year>9999||!Number.isInteger(month)||month<1||month>12)return '';
+  if(day!==undefined){
+    const leap=year%4===0&&(year%100!==0||year%400===0);
+    const days=[31,leap?29:28,31,30,31,30,31,31,30,31,30,31];
+    if(!Number.isInteger(day)||day<1||day>days[month-1])return '';
+  }
+  return `${String(year).padStart(4,'0')}-${String(month).padStart(2,'0')}`;
+}
+function normalizeMonthValue(input,depth=0){
+  if(depth>4||input===null||input===undefined||input==='')return '';
+  if(input instanceof Date){
+    if(!Number.isFinite(input.getTime()))return '';
+    return monthFromDateParts(input.getUTCFullYear(),input.getUTCMonth()+1);
+  }
+  if(typeof input==='number'){
+    if(!Number.isSafeInteger(input))return '';
+    const date=new Date(input);
+    if(!Number.isFinite(date.getTime()))return '';
+    return monthFromDateParts(date.getUTCFullYear(),date.getUTCMonth()+1);
+  }
+  if(Array.isArray(input))return input.length===1?normalizeMonthValue(input[0],depth+1):'';
+  if(typeof input==='object'){
+    for(const key of ['value','timestamp','date','text']){
+      if(Object.hasOwn(input,key)){
+        const normalized=normalizeMonthValue(input[key],depth+1);
+        if(normalized)return normalized;
+      }
+    }
+    return '';
+  }
+  if(typeof input!=='string')return '';
+  const text=input.trim();
+  let match=text.match(/^(\d{4})-(\d{2})$/);
+  if(match)return monthFromDateParts(Number(match[1]),Number(match[2]));
+  match=text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(match)return monthFromDateParts(Number(match[1]),Number(match[2]),Number(match[3]));
+  match=text.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,9}))?)?(Z|[+-]\d{2}:\d{2})?$/i);
+  if(!match)return '';
+  const [,yearText,monthText,dayText,hourText,minuteText,secondText='00',fraction='',zoneInput='Z']=match;
+  const zone=zoneInput.toUpperCase();
+  const year=Number(yearText),calendarMonth=Number(monthText),day=Number(dayText);
+  if(!monthFromDateParts(year,calendarMonth,day))return '';
+  const hour=Number(hourText),minute=Number(minuteText),second=Number(secondText);
+  if(hour>23||minute>59||second>59)return '';
+  if(zone!=='Z'){
+    const [,zoneHour,zoneMinute]=zone.match(/^[+-](\d{2}):(\d{2})$/)||[];
+    if(!zoneHour||Number(zoneHour)>23||Number(zoneMinute)>59)return '';
+  }
+  const milliseconds=fraction?`.${fraction.slice(0,3).padEnd(3,'0')}`:'';
+  const iso=`${yearText}-${monthText}-${dayText}T${hourText}:${minuteText}:${secondText}${milliseconds}${zone}`;
+  const timestamp=Date.parse(iso);
+  if(!Number.isFinite(timestamp))return '';
+  const date=new Date(timestamp);
+  return monthFromDateParts(date.getUTCFullYear(),date.getUTCMonth()+1);
+}
+const monthValue=record=>{
+  for(const field of ['PayrollMonth','Payroll Month','PerformanceMonth','Performance Month','Month','month']){
+    const normalized=normalizeMonthValue(record?.fields?.[field]);
+    if(normalized)return normalized;
+  }
+  return '';
+};
+const status=(kind,message)=>{$('connectionStatus').className=`status ${kind}`;$('connectionStatus').textContent=message;};
+const setError=error=>status('error',String(error?.message||error));
+function errorPanel(message){return `<section class="panel error" role="alert">${esc(message)}</section>`}
+function loadingPanel(message='กำลังโหลดข้อมูลจริงจาก Feishu...'){return `<section class="panel muted">${esc(message)}</section>`}
+function requestMonthLabel(){return `${month} · KPI / Commission performance month: ${previousMonth(month)}`}
+function previousMonth(key){const [year,number]=key.split('-').map(Number);const date=new Date(Date.UTC(year,number-2,1));return `${date.getUTCFullYear()}-${String(date.getUTCMonth()+1).padStart(2,'0')}`}
+
+function renderMonthSelector(){
+  const period=$('period');
+  period.hidden=!MONTH_MODULES.has(moduleName);
+  if(period.hidden)return;
+  $('monthYear').value=month.slice(0,4);
+  $('months').innerHTML=MONTHS.map((label,index)=>{
+    const key=`${month.slice(0,4)}-${String(index+1).padStart(2,'0')}`;
+    return `<button class="month ${key===month?'active':''}" type="button" data-month="${key}" aria-pressed="${key===month}">${label}</button>`;
+  }).join('');
+  $('months').querySelectorAll('[data-month]').forEach(button=>button.addEventListener('click',()=>{
+    if(button.dataset.month===month)return;
+    month=button.dataset.month;
+    payrollPrepared=null;
+    const next=new URL(location.href);
+    next.searchParams.set('month',month);
+    history.replaceState(null,'',next);
+    renderMonthSelector();
+    load();
+  }));
+  $('monthYear').onchange=()=>{
+    const year=Number($('monthYear').value);
+    if(!Number.isInteger(year)||year<1900||year>9999){setError(new Error('Select a valid year between 1900 and 9999.'));$('monthYear').value=month.slice(0,4);return;}
+    month=`${year}-${month.slice(5,7)}`;
+    payrollPrepared=null;
+    const next=new URL(location.href);
+    next.searchParams.set('month',month);
+    history.replaceState(null,'',next);
+    renderMonthSelector();
+    load();
+  };
+}
+
+function recordTable(records,columns=null,empty='ไม่พบข้อมูลจริงใน Feishu'){
+  if(!records.length)return `<div class="empty">${esc(empty)}</div>`;
+  const keys=columns||[...new Set(records.flatMap(record=>Object.keys(record.fields||{})))].slice(0,24);
+  return `<div class="tablewrap"><table class="table"><thead><tr><th>Record ID</th>${keys.map(key=>`<th>${esc(key)}</th>`).join('')}</tr></thead><tbody>${records.map(record=>`<tr><td>${esc(record.record_id)}</td>${keys.map(key=>`<td>${esc(value(record.fields,[key]))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+function dataCards(data,keys){
+  return `<div class="cards">${keys.map(key=>`<div class="card"><small>${esc(key.label)}</small><strong>${Number(data[key.name]?.count||0)}</strong><small>${esc(data[key.name]?.status||'NOT_FOUND')}</small></div>`).join('')}</div>`;
+}
+function renderDashboard(data){
+  const keys=[
+    {name:'employees',label:'Employees'},
+    {name:'attendanceSummary',label:'AttendanceSummary'},
+    {name:'payrollItems',label:'PayrollItems'},
+    {name:'payroll',label:'Payroll records'},
+    {name:'payslips',label:'Payslips'}
+  ];
+  return `${dataCards(data,keys)}<section class="panel"><h2>Production data sources</h2><p class="muted">Dashboard shows table availability and record counts only. Employee, Attendance, KPI, Payroll, Payslip, and Report data remain in their own modules.</p><div class="toolbar"><span>Last synced: ${esc(new Date(syncData.syncedAt).toLocaleString('th-TH'))}</span></div></section>`;
+}
+function renderEmployee(data){
+  const records=data.employees?.records||[];
+  const companies=[...new Set(records.map(row=>value(row.fields,['Company','Company Name'])).filter(Boolean))].sort();
+  const statuses=[...new Set(records.map(row=>value(row.fields,['Status Employees','Status','Employee Status'])).filter(Boolean))].sort();
+  return `<div class="toolbar"><input class="search" id="employeeSearch" type="search" placeholder="ค้นหา EmployeeID / ชื่อ / บริษัท"><select class="select" id="companyFilter"><option value="">ทุกบริษัท</option>${companies.map(company=>`<option value="${esc(company)}">${esc(company)}</option>`).join('')}</select><select class="select" id="employeeStatusFilter"><option value="">ทุกสถานะ</option>${statuses.map(item=>`<option value="${esc(item)}">${esc(item)}</option>`).join('')}</select><span class="muted" id="employeeCount"></span></div><section class="panel"><h2>Employee Master</h2><div id="employeeTable"></div></section>`;
+}
+function bindEmployee(data){
+  const records=data.employees?.records||[];
+  const render=()=>{
+    const query=$('employeeSearch').value.trim().toLowerCase();
+    const company=$('companyFilter').value;
+    const employeeStatus=$('employeeStatusFilter').value;
+    const rows=records.filter(record=>{
+      const fields=record.fields||{};
+      const id=value(fields,['EmployeeID','Employee ID','Emp ID']);
+      const name=value(fields,['Name','Employee Name']);
+      const org=value(fields,['Company','Company Name']);
+      const state=value(fields,['Status Employees','Status','Employee Status']);
+      return (!query||`${id} ${name} ${org}`.toLowerCase().includes(query))&&(!company||org===company)&&(!employeeStatus||state===employeeStatus);
+    });
+    $('employeeCount').textContent=`${rows.length} / ${records.length} records`;
+    $('employeeTable').innerHTML=recordTable(rows,['EmployeeID','Name','Nickname','Company','Department','Position','JoinDate','Salary','Status Employees','Status']);
+  };
+  $('employeeSearch').addEventListener('input',render);
+  $('companyFilter').addEventListener('change',render);
+  $('employeeStatusFilter').addEventListener('change',render);
+  render();
+}
+function renderAttendance(data){
+  const all=data.attendanceSummary?.records||[];
+  const keyed=all.map(record=>({record,month:monthValue(record)}));
+  const monthRows=keyed.filter(item=>item.month===month).map(item=>item.record);
+  const unclassified=keyed.filter(item=>!item.month).length;
+  return `<section class="panel"><h2>AttendanceSummary · ${esc(month)}</h2><div class="notice">Records are read from Feishu AttendanceSummary. Preview validates EmployeeID against real Feishu Employees before the separate, explicitly confirmed Import action. Import remains controlled by the server-side write gate.</div>${unclassified?`<p class="muted">${unclassified} records with missing or unrecognized month values are excluded from this month.</p>`:''}<div class="upload"><input class="file" id="attendanceFile" type="file" accept=".xlsx,.xls"><button class="btn primary" id="previewImport">Preview XLSX</button><button class="btn" id="commitImport" disabled>Import to Feishu</button><span class="muted">${monthRows.length} matching records · ${all.length} total</span></div><div id="importResult"></div><div id="attendanceRecords">${recordTable(monthRows)}</div></section>`;
+}
+function bindAttendance(){
+  let validatedFile=null;
+  let validatedMonth=null;
+  const fileInput=$('attendanceFile');
+  const previewButton=$('previewImport');
+  const commitButton=$('commitImport');
+  fileInput.addEventListener('change',()=>{
+    validatedFile=null;
+    validatedMonth=null;
+    commitButton.disabled=true;
+  });
+  const process=async commit=>{
+    const file=fileInput.files[0];
+    if(!file){setError(new Error('Choose an attendance workbook first.'));return;}
+    if(commit&&(file!==validatedFile||month!==validatedMonth)){
+      validatedFile=null;
+      validatedMonth=null;
+      commitButton.disabled=true;
+      setError(new Error('Preview and validate this exact workbook for the selected month before importing.'));
+      return;
+    }
+    if(commit&&!confirm(`Import the validated attendance workbook into Feishu for ${month}?`))return;
+    if(!commit){validatedFile=null;validatedMonth=null;commitButton.disabled=true;}
+    const form=new FormData();
+    form.append('file',file);
+    form.append('month',month);
+    const result=$('importResult');
+    result.innerHTML=loadingPanel(commit?'กำลังนำเข้าข้อมูล Attendance เข้า Feishu...':'กำลังตรวจสอบไฟล์ Attendance...');
+    previewButton.disabled=true;commitButton.disabled=true;
+    try{
+      const response=await requestJson(`/api/attendance/import${commit?'?commit=true':''}`,{method:'POST',body:form});
+      const parsed=response.parsed||{};
+      const details=response.validation||response.result||{};
+      const validationErrors=details.errors||[];
+      const validationWarnings=details.warnings||[];
+      if(!commit){
+        if(response.mode!=='PREVIEW'||!details.ok)throw new Error('Attendance preview did not pass validation. Import is disabled.');
+        validatedFile=file;
+        validatedMonth=month;
+        result.innerHTML=`<section class="panel"><h3>PREVIEW VALIDATED · ${Number(parsed.rowCount||0)} source rows</h3><p>Sheet: ${esc(parsed.sheet||'-')} · Valid EmployeeID rows: ${esc(details.validCount??'-')}</p>${validationErrors.length?`<p class="error">${validationErrors.map(esc).join('<br>')}</p>`:''}${validationWarnings.length?`<p class="muted">${validationWarnings.map(esc).join('<br>')}</p>`:''}${recordTable(response.rows||[],['employeeId','month','workDays','otHours','leaveDays','absentDays','lateMinutes'],'No importable attendance rows were returned.')}</section>`;
+        commitButton.disabled=false;
+        status('connected',`Connected to Feishu · Attendance preview validated for ${month}`);
+        return;
+      }
+      if(response.mode!=='IMPORTED')throw new Error('Attendance import did not confirm a Feishu write.');
+      const imported=Number(details.imported||0);
+      validatedFile=null;validatedMonth=null;
+      result.innerHTML=loadingPanel(`Imported ${imported} AttendanceSummary records. Reloading real Feishu data...`);
+      const reloaded=await load();
+      if(!reloaded)throw new Error(`Attendance import completed (${imported} rows), but refreshed AttendanceSummary data could not be loaded.`);
+      status('connected',`Attendance import successful · ${imported} records written to Feishu · ${month}`);
+      $('importResult').innerHTML=`<section class="panel"><h3>Attendance import successful</h3><p>${imported} records written to Feishu AttendanceSummary for ${esc(month)}. The table below has been refreshed from Feishu.</p></section>`;
+    }catch(error){result.innerHTML=errorPanel(error.message);setError(error);}
+    finally{
+      if(previewButton.isConnected)previewButton.disabled=false;
+      if(commitButton.isConnected)commitButton.disabled=validatedFile!==fileInput.files[0]||validatedMonth!==month;
+    }
+  };
+  previewButton.addEventListener('click',()=>process(false));
+  commitButton.addEventListener('click',()=>process(true));
+}
+function renderKpi(){
+  return `<section class="panel"><h2>KPI / Commission · Payroll month ${esc(month)}</h2><div class="notice">Performance Month is ${esc(previousMonth(month))}, the previous calendar month. Eligibility follows the backend rule using JoinDate and the required performance-month WorkDays.</div><button class="btn primary" id="previewKpi">Calculate eligibility and KPI / Commission</button><div id="kpiResult"></div></section>`;
+}
+function bindKpi(){
+  $('previewKpi').addEventListener('click',async()=>{
+    const result=$('kpiResult');
+    result.innerHTML=loadingPanel('กำลังคำนวณ Eligibility จากข้อมูล Feishu...');
+    $('previewKpi').disabled=true;
+    try{
+      const response=await requestJson(`/api/payroll-preview/${encodeURIComponent(month)}`);
+      const rows=response.transaction?.rows||[];
+      const performanceMonth=response.transaction?.performanceMonth||previousMonth(month);
+      result.innerHTML=`<div class="cards"><div class="card"><small>Performance month</small><strong>${esc(performanceMonth)}</strong></div><div class="card"><small>Eligible</small><strong>${rows.filter(row=>row.kpiEligible||row.commissionEligible).length}</strong></div><div class="card"><small>Employees reviewed</small><strong>${rows.length}</strong></div></div><div class="tablewrap"><table class="table"><thead><tr><th>EmployeeID</th><th>Name</th><th>Company</th><th>Position</th><th>Performance WorkDays</th><th>KPI Eligible</th><th>Commission Eligible</th><th>KPI</th><th>Commission</th><th>Reason</th></tr></thead><tbody>${rows.length?rows.map(row=>`<tr><td>${esc(row.employeeId)}</td><td>${esc(row.name)}</td><td>${esc(row.company)}</td><td>${esc(row.position)}</td><td class="num">${money(row.performanceWorkDays)}</td><td>${row.kpiEligible?'YES':'NO'}</td><td>${row.commissionEligible?'YES':'NO'}</td><td class="num">${money(row.kpi)}</td><td class="num">${money(row.commission)}</td><td>${esc(row.eligibilityReason)}</td></tr>`).join(''):'<tr><td colspan="10" class="empty">No employee rows returned from Feishu.</td></tr>'}</tbody></table></div>`;
+      status('connected',`Connected to Feishu · KPI / Commission calculated for ${month}`);
+    }catch(error){result.innerHTML=errorPanel(error.message);setError(error);}
+    finally{$('previewKpi').disabled=false;}
+  });
+}
+function payrollRows(rows){
+  return `<div class="tablewrap"><table class="table"><thead><tr><th>EmployeeID</th><th>Name</th><th>Company</th><th>Group</th><th>Position</th><th>Performance</th><th>WorkDays</th><th>OT</th><th>Base Salary</th><th>KPI</th><th>Commission</th><th>OT Pay</th><th>Gross</th><th>Tax</th><th>SSO</th><th>EWFund</th><th>Other Deduction</th><th>Total Deduction</th><th>Net Pay</th><th>Eligibility</th></tr></thead><tbody>${rows.length?rows.map(row=>`<tr><td>${esc(row.employeeId)}</td><td>${esc(row.name)}</td><td>${esc(row.company)}</td><td>${esc(row.payrollGroup)}</td><td>${esc(row.position)}</td><td>${esc(row.performanceMonth)}</td><td class="num">${money(row.workDays)}</td><td class="num">${money(row.otHours)}</td><td class="num">${money(row.baseSalary)}</td><td class="num">${money(row.kpi)}</td><td class="num">${money(row.commission)}</td><td class="num">${money(row.otPay)}</td><td class="num">${money(row.gross)}</td><td class="num">${money(row.tax)}</td><td class="num">${money(row.socialSecurity)}</td><td class="num">${money(row.employeeWelfareFund)}</td><td class="num">${money(row.otherDeduction)}</td><td class="num">${money(row.totalDeduction)}</td><td class="num"><b>${money(row.net)}</b></td><td>${esc(row.eligibilityReason||row.eligibilityStatus)}</td></tr>`).join(''):'<tr><td colspan="20" class="empty">Prepare / Validate to calculate payroll from Feishu data.</td></tr>'}</tbody></table></div>`;
+}
+function renderPayroll(){
+  const rows=payrollPrepared?.rows||[];
+  const cards=payrollPrepared?`<div class="cards"><div class="card"><small>Employees</small><strong>${rows.length}</strong></div><div class="card"><small>STARLIVE</small><strong>${rows.filter(row=>row.payrollGroup==='STARLIVE').length}</strong></div><div class="card"><small>IAMDP</small><strong>${rows.filter(row=>row.payrollGroup==='IAMDP').length}</strong></div><div class="card"><small>Gross Pay</small><strong>${money(rows.reduce((sum,row)=>sum+Number(row.gross||0),0))}</strong></div><div class="card"><small>Total Deduction</small><strong>${money(rows.reduce((sum,row)=>sum+Number(row.totalDeduction||0),0))}</strong></div><div class="card"><small>Net Pay</small><strong>${money(rows.reduce((sum,row)=>sum+Number(row.net||0),0))}</strong></div></div>`:'';
+  return `${cards}<section class="panel"><h2>Payroll Run Control · ${esc(month)}</h2><div class="notice">${esc(requestMonthLabel())}. Payroll contains calculated payroll results and run controls; employee payslips are handled only in 06 Payslip.</div><div class="filters"><button class="btn primary" id="preparePayroll">1. Prepare / Validate</button><button class="btn" id="approvePayroll">2. Approve</button><button class="btn" id="lockPayroll">3. Lock</button><button class="btn" id="exportStarlive">Export STARLIVE .xlsx</button><button class="btn" id="exportIamdp">Export IAMDP .xlsx</button><span class="muted" id="runStatus">Loading run status...</span></div></section><section class="panel"><h2>Calculated Payroll Detail</h2>${payrollRows(rows)}</section><details class="panel"><summary>Payroll readiness and live data diagnostics</summary><div class="filters"><button class="btn" data-diagnostic="/api/production-readiness">Production Readiness</button><button class="btn" data-diagnostic="/api/go-live-audit">Go-Live Audit</button><button class="btn" data-diagnostic="/api/data-integrity-audit">Data Integrity Audit</button></div><pre class="muted" id="payrollDiagnostics">Run a diagnostic to view its backend report.</pre></details>`;
+}
+async function loadRunStatus(){
+  const element=$('runStatus');
+  if(!element)return;
+  try{
+    const response=await requestJson(`/api/payroll-run/${encodeURIComponent(month)}`);
+    element.textContent=`Run: ${response.run?.status||'DRAFT'}`;
+  }catch(error){element.textContent=`Run status unavailable: ${error.message}`;}
+}
+function bindPayroll(){
+  $('preparePayroll').addEventListener('click',async()=>{
+    const button=$('preparePayroll');
+    button.disabled=true;
+    status('loading',`Reading Feishu and preparing payroll for ${month}...`);
+    try{
+      const response=await requestJson(`/api/payroll-run/${encodeURIComponent(month)}/prepare`,{method:'POST'});
+      payrollPrepared=response.transaction;
+      $('content').innerHTML=renderPayroll();
+      bindPayroll();
+      $('runStatus').textContent=`VALIDATED · ${payrollPrepared.rows.length} rows · new ${payrollPrepared.candidates.length} · duplicates ${payrollPrepared.duplicates.length}`;
+      status('connected',`Connected to Feishu · Payroll validated for ${month}`);
+    }catch(error){setError(error);const runStatus=$('runStatus');if(runStatus)runStatus.textContent='Prepare failed';}
+    finally{const nextButton=$('preparePayroll');if(nextButton)nextButton.disabled=false;}
+  });
+  for(const action of ['approve','lock']){
+    $(`${action}Payroll`).addEventListener('click',async()=>{
+      const button=$(`${action}Payroll`);
+      button.disabled=true;
+      try{
+        const response=await requestJson(`/api/payroll-run/${encodeURIComponent(month)}/${action}`,{method:'POST'});
+        $('runStatus').textContent=`Run: ${response.run.status}`;
+        status('connected',`Connected to Feishu · Payroll run ${response.run.status}`);
+      }catch(error){setError(error);$('runStatus').textContent=`${action} failed: ${error.message}`;}
+      finally{button.disabled=false;}
+    });
+  }
+  $('exportStarlive').addEventListener('click',()=>downloadPayroll('STARLIVE'));
+  $('exportIamdp').addEventListener('click',()=>downloadPayroll('IAMDP'));
+  document.querySelectorAll('[data-diagnostic]').forEach(button=>button.addEventListener('click',async()=>{
+    const output=$('payrollDiagnostics');
+    output.textContent='Loading diagnostic...';
+    button.disabled=true;
+    try{
+      const response=await requestJson(button.dataset.diagnostic);
+      output.textContent=JSON.stringify(response.report||response.test||response,null,2);
+      status('connected','Connected to Feishu · Payroll diagnostic completed');
+    }catch(error){output.textContent=error.message;setError(error);}
+    finally{button.disabled=false;}
+  }));
+}
+async function downloadPayroll(group){
+  try{
+    const response=await apiFetch(`/api/payroll-run/${encodeURIComponent(month)}/export.xlsx?group=${encodeURIComponent(group)}`);
+    if(!response.ok){
+      let body={};
+      try{body=await response.json();}catch{}
+      throw new Error(body.error||`Export failed (${response.status})`);
+    }
+    const url=URL.createObjectURL(await response.blob());
+    const anchor=document.createElement('a');
+    anchor.href=url;anchor.download=`Payroll-${month}-${group}.xlsx`;
+    document.body.appendChild(anchor);anchor.click();anchor.remove();URL.revokeObjectURL(url);
+    status('connected',`Connected to Feishu · ${group} payroll export downloaded`);
+  }catch(error){setError(error);}
+}
+function renderPayslips(data){
+  const all=data.payslips?.records||[];
+  const keyed=all.map(record=>({record,month:monthValue(record)}));
+  const rows=keyed.filter(item=>item.month===month).map(item=>item.record);
+  const unclassified=keyed.filter(item=>!item.month).length;
+  return `<section class="panel"><h2>Payslips · ${esc(month)}</h2><div class="notice">This module displays only records stored in the Feishu Payslips table. Payroll calculation results are not shown as payslips.</div>${unclassified?`<p class="muted">${unclassified} Payslips records with missing or unrecognized month values are excluded from this month.</p>`:''}${recordTable(rows,null,all.length?'No payslip records for this month.':'No payslip records exist in the Feishu Payslips table.')}</section>`;
+}
+function renderReports(data){
+  const all=data.payroll?.records||[];
+  const keyed=all.map(record=>({record,month:monthValue(record)}));
+  const rows=keyed.filter(item=>item.month===month).map(item=>item.record);
+  const unclassified=keyed.filter(item=>!item.month).length;
+  return `<section class="panel"><h2>Payroll Records Report · ${esc(month)}</h2><div class="notice">Read-only report of records already stored in the Feishu Payroll table. Payroll calculations and run approvals remain in 05 Payroll.</div><p>${rows.length} records for selected payroll month${unclassified?` · ${unclassified} records with missing or unrecognized month values excluded`:''}</p>${recordTable(rows,null,all.length?'No Payroll records for this month.':'No Payroll records exist in the Feishu Payroll table.')}</section>`;
+}
+function renderSettings(data){
+  const keys=['companies','departments','positions','employees','attendanceSummary','payrollItems','payroll','payslips'];
+  return `<section class="panel"><h2>Production configuration</h2><div class="notice">Feishu credentials and write gates are server-side and are not exposed in this page. Attendance imports and Payroll commits remain subject to backend configuration and validation.</div><h3>Feishu table availability</h3><div class="tablewrap"><table class="table"><thead><tr><th>Source</th><th>Status</th><th>Records</th></tr></thead><tbody>${keys.map(key=>`<tr><td>${esc(key)}</td><td>${esc(data[key]?.status||'NOT_FOUND')}</td><td>${Number(data[key]?.count||0)}</td></tr>`).join('')}</tbody></table></div></section>`;
+}
+function render(data){
+  const views={
+    dashboard:()=>renderDashboard(data),
+    employee:()=>renderEmployee(data),
+    attendance:()=>renderAttendance(data),
+    kpi:()=>renderKpi(),
+    payroll:()=>renderPayroll(),
+    payslip:()=>renderPayslips(data),
+    reports:()=>renderReports(data),
+    settings:()=>renderSettings(data)
+  };
+  $('content').innerHTML=views[moduleName]();
+  if(moduleName==='employee')bindEmployee(data);
+  if(moduleName==='attendance')bindAttendance();
+  if(moduleName==='kpi')bindKpi();
+  if(moduleName==='payroll'){bindPayroll();loadRunStatus();}
+}
+async function requestJson(path,options){
+  const response=await apiFetch(path,options);
+  let body;
+  try{body=await response.json();}catch{throw new Error(`Backend returned an invalid response (${response.status}).`);}
+  if(!response.ok||body.ok===false){
+    const validationErrors=body.validation?.errors;
+    const detail=Array.isArray(validationErrors)&&validationErrors.length?` ${validationErrors.join('; ')}`:'';
+    throw new Error(`${body.error||`Request failed (${response.status}).`}${detail}`);
+  }
+  return body;
+}
+async function load(){
+  if(moduleName==='payroll')payrollPrepared=null;
+  $('content').innerHTML=loadingPanel();
+  status('loading','กำลังอ่านข้อมูลจริงจาก Feishu...');
+  try{
+    syncData=await requestJson('/api/sync');
+    status('connected',`Connected to Feishu · ${new Date(syncData.syncedAt).toLocaleString('th-TH')}`);
+    render(syncData.data||{});
+    return true;
+  }catch(error){syncData=null;setError(error);$('content').innerHTML=errorPanel(error.message);return false;}
+}
+async function authenticate(){
+  status('loading','กำลังตรวจสอบ Session...');
+  try{
+    const response=await requestJson('/api/auth/status');
+    if(!response.authenticated){location.href='login.html';return false;}
+    currentUser=response.user?.username||'';
+    $('user').textContent=currentUser;
+    return true;
+  }catch(error){setError(error);$('content').innerHTML=errorPanel(error.message);return false;}
+}
+async function logout(){
+  try{await requestJson('/api/auth/logout',{method:'POST'});}
+  finally{location.href='login.html';}
+}
+
+if(moduleName!==requestedModule){const next=new URL(location.href);next.searchParams.set('module',moduleName);history.replaceState(null,'',next);}
+$('title').textContent=MODULES[moduleName].title;
+$('subtitle').textContent=MODULES[moduleName].subtitle;
+document.querySelectorAll('.nav a').forEach(link=>link.classList.toggle('active',new URL(link.href).searchParams.get('module')===moduleName));
+renderMonthSelector();
+$('refresh').addEventListener('click',load);
+$('logout').addEventListener('click',logout);
+authenticate().then(authenticated=>{if(authenticated)load();});
+</script>
+</body>
+</html>

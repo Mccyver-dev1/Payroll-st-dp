@@ -9,8 +9,8 @@ This bundle completes the current Payroll-first workflow without adding future H
 - Replace `backend/src/payroll.js`
 - Replace `backend/src/payroll-export.js`
 - Add `backend/src/attendance-import.js`
-- Replace `frontend/module.html`
-- Keep the existing `frontend/payroll.html`, `frontend/index.html`, `frontend/employee.html`, `frontend/api.js`, `frontend/config.js`, and authentication files.
+- Use `frontend/module.html` as the shared application shell for Dashboard, Employee, Attendance, KPI / Commission, Payroll, Payslip, Reports, and Settings.
+- Keep legacy Dashboard, Employee, Payroll, Payroll Run, Payroll Preview, Payroll Audit, Production Payroll, Base Audit, Schema Audit, and Tax Readiness HTML entries as redirects into the shared shell; retain the shared `frontend/api.js`, `frontend/config.js`, and authentication files.
 
 ## New production behavior
 - Attendance/OT use the payroll month.

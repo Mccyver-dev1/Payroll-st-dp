@@ -1,16 +1,13 @@
 <!doctype html>
-<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mac Feishu Payroll — Dashboard</title>
-<style>
-body{font-family:system-ui,sans-serif;margin:0;background:#f4f6f8;color:#1f2329}.top{padding:18px 24px;background:#fff;border-bottom:1px solid #ddd;display:flex;justify-content:space-between;align-items:center}.btn{border:1px solid #ccc;background:#fff;padding:10px 14px;border-radius:10px;cursor:pointer;text-decoration:none;color:inherit}.wrap{padding:24px}.status{padding:12px 16px;background:#fff;border:1px solid #ddd;border-radius:12px;margin-bottom:16px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.card{background:#fff;padding:16px;border:1px solid #ddd;border-radius:12px}.ok{color:#087f5b}.bad{color:#c92a2a}.hint{background:#fff;border:1px solid #ddd;border-radius:12px;padding:18px}
-</style></head>
-<body><header class="top"><div><b>Mac Feishu Payroll</b><div>Real Feishu Sync — no mock data</div></div><div><a class="btn" href="employee.html">02 Employee</a> <a class="btn" href="payroll.html">05 Payroll</a> <button class="btn" onclick="sync()">↻ ซิงค์ Feishu Base</button> <button class="btn" onclick="logout()">ออกจากระบบ</button></div></header>
-<main class="wrap"><div id="status" class="status">ตรวจสอบ Session...</div><div id="cards" class="grid"></div>
-<div class="hint"><b>Dashboard</b><p>หน้านี้ใช้สำหรับภาพรวมระบบและสถานะการเชื่อมต่อเท่านั้น</p><p>ข้อมูลพนักงานย้ายไปอยู่ที่ <b>02 Employee</b> เพื่อไม่ให้ Dashboard ปะปนกับข้อมูล Master Data</p></div></main>
-<script src="./config.js"></script>
-<script type="module">
-import {apiFetch} from './api.js';
-async function checkSession(){try{const r=await apiFetch('/api/auth/status');const j=await r.json();if(!j.authenticated){location.href='login.html';return false}document.getElementById('status').innerHTML='<span class="ok">● Authenticated</span> · '+j.user.username;return true}catch(e){document.getElementById('status').innerHTML='<span class="bad">● Backend not configured</span> · '+e.message;return false}}
-window.sync=async function(){const s=document.getElementById('status');s.textContent='กำลังเชื่อมต่อ Feishu...';try{const r=await apiFetch('/api/sync');const j=await r.json();if(!j.ok)throw new Error(j.error||'Sync failed');const d=j.data;s.innerHTML='<span class="ok">● Connected</span> · '+new Date(j.syncedAt).toLocaleString('th-TH');document.getElementById('cards').innerHTML=Object.entries(d).map(([k,v])=>'<div class="card"><b>'+k+'</b><div>'+v.status+'</div><strong>'+v.count+'</strong> records</div>').join('')}catch(e){s.innerHTML='<span class="bad">● Sync failed</span> · '+e.message}}
-window.logout=async function(){try{await apiFetch('/api/auth/logout',{method:'POST'})}finally{location.href='login.html'}};checkSession();
-</script></body></html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="refresh" content="0;url=./module.html?module=dashboard">
+<title>MAC FEISHU PAYROLL — Dashboard</title>
+</head>
+<body>
+<p>Opening Dashboard...</p>
+<script>location.replace('./module.html?module=dashboard');</script>
+</body>
+</html>

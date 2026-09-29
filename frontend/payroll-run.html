@@ -1,17 +1,13 @@
 <!doctype html>
-<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mac Feishu Payroll — Production Audit</title>
-<style>body{font-family:Arial,sans-serif;background:#0b1220;color:#e8eef8;margin:0}main{max-width:1150px;margin:30px auto;padding:0 18px}.card{background:#111b2e;border:1px solid #263653;border-radius:14px;padding:18px;margin:14px 0}input,button{padding:10px;border-radius:8px}input{background:#0d1628;color:#fff;border:1px solid #405170}button{border:0;cursor:pointer;margin:4px}pre{white-space:pre-wrap;overflow:auto}.bad{color:#ff7b7b}</style></head>
-<body><main><h1>Payroll Run Control</h1><p>Production audits are read-only. No demo data is generated.</p>
-<div class="card"><input id="month" placeholder="YYYY-MM"><button onclick="audit('/api/go-live-audit')">Go-Live Audit</button><button onclick="audit('/api/data-integrity-audit')">Data Integrity Audit</button><button onclick="audit('/api/production-readiness')">Production Readiness</button><button onclick="run('prepare')">Prepare / Validate</button><button onclick="run('approve')">Approve</button><button onclick="run('lock')">Lock</button><button onclick="commitRun()">Commit to Feishu</button></div>
-<div id="out" class="card">Loading...</div>
-<script src="./config.js"></script>
-<script type="module">
-import {apiFetch} from './api.js';
-const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function month(){const m=$('month').value.trim();if(!/^\d{4}-\d{2}$/.test(m))throw Error('Payroll Month must be YYYY-MM.');return m}
-window.audit=async path=>{try{const r=await apiFetch(path);const j=await r.json();$('out').innerHTML='<pre>'+esc(JSON.stringify(j.report||j,null,2))+'</pre>'}catch(e){$('out').innerHTML='<span class="bad">'+esc(e.message)+'</span>'}}
-window.run=async action=>{try{const r=await apiFetch('/api/payroll-run/'+encodeURIComponent(month())+'/'+action,{method:'POST',headers:{'Content-Type':'application/json'}});const j=await r.json();if(!j.ok)throw Error(j.error);$('out').innerHTML='<pre>'+esc(JSON.stringify(j,null,2))+'</pre>'}catch(e){$('out').innerHTML='<span class="bad">'+esc(e.message)+'</span>'}}
-window.commitRun=async()=>{try{const m=month();if(!confirm('ยืนยัน Commit Payroll จริงเข้า Feishu สำหรับ '+m+' ?'))return;const r=await apiFetch('/api/payroll-transaction/commit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({month:m})});const j=await r.json();if(!j.ok)throw Error(j.error||'Commit blocked');$('out').innerHTML='<pre>'+esc(JSON.stringify(j,null,2))+'</pre>'}catch(e){$('out').innerHTML='<span class="bad">'+esc(e.message)+'</span>'}}
-$('month').value=new Date().toISOString().slice(0,7);audit('/api/data-integrity-audit');
-</script></main></body></html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="refresh" content="0;url=./module.html?module=payroll">
+<title>MAC FEISHU PAYROLL — Payroll Run</title>
+</head>
+<body>
+<p>Opening Payroll Run Control...</p>
+<script>location.replace('./module.html?module=payroll');</script>
+</body>
+</html>

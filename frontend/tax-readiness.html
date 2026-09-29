@@ -1,28 +1,13 @@
 <!doctype html>
-<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mac Feishu Payroll — STEP 6 Tax Readiness</title>
-<style>
-body{font-family:Arial,sans-serif;background:#0b1220;color:#e8eef8;margin:0}main{max-width:1100px;margin:30px auto;padding:0 18px}
-.card{background:#111b2e;border:1px solid #263653;border-radius:14px;padding:18px;margin:14px 0}
-button{padding:10px 15px;border:0;border-radius:8px;cursor:pointer}table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid #263653;text-align:left}
-.ok{color:#63e6be}.bad{color:#ff7b7b}.muted{color:#91a4c0}
-</style></head><body><main>
-<h1>STEP 6 — Tax Data Readiness</h1>
-<p class="muted">ตรวจว่าฐานข้อมูลมีข้อมูลที่จำเป็นสำหรับ Tax Engine หรือยัง — ยังไม่คำนวณภาษี</p>
-<button id="run">Run Readiness Audit</button><button id="export">Export JSON</button><div id="out"></div>
-</main>
-<script>
-let last=null,$=x=>document.getElementById(x),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-async function run(){try{
- const r=await fetch('/api/tax-data-contract');last=await r.json();if(!last.ok)throw Error(last.error);const x=last.report;
- let h=`<div class="card"><h2 class="${x.status.readyForTaxEngine?'ok':'bad'}">${x.status.readyForTaxEngine?'READY FOR TAX ENGINE':'NOT READY — DATA CONTRACT INCOMPLETE'}</h2><p>Missing: ${x.status.missingCount} | Type Review: ${x.status.typeReviewCount}</p></div>`;
- h+='<div class="card"><h2>Employee Required Fields</h2><table><tr><th>Field</th><th>Status</th><th>Actual</th><th>Expected</th></tr>';
- for(const v of x.employee.required)h+=`<tr><td>${esc(v.field)}</td><td class="${v.status==='OK'?'ok':'bad'}">${v.status}</td><td>${esc(v.actual||'-')}</td><td>${esc((v.expected||[]).join(', '))}</td></tr>`;
- h+='</table></div><div class="card"><h2>Payroll Tax Outputs</h2><table><tr><th>Field</th><th>Status</th><th>Actual</th><th>Expected</th></tr>';
- for(const v of x.payroll.requiredOutputs)h+=`<tr><td>${esc(v.field)}</td><td class="${v.status==='OK'?'ok':'bad'}">${v.status}</td><td>${esc(v.actual||'-')}</td><td>${esc((v.expected||[]).join(', '))}</td></tr>`;
- h+='</table></div><div class="card"><h2>Optional Inputs Present</h2><p>'+x.employee.optional.filter(v=>v.present).map(v=>esc(v.field)).join(', ')||'-';h+='</p></div>';
- h+='<div class="card"><h2>Rules to Confirm</h2><ul>'+x.rulesToConfirmBeforeTaxEngine.map(v=>`<li>${esc(v)}</li>`).join('')+'</ul></div>';
- $('out').innerHTML=h;
-}catch(e){$('out').innerHTML=`<div class="card bad">${esc(e.message)}</div>`}}
-$('run').onclick=run;$('export').onclick=()=>{if(!last)return alert('Run audit first');let b=new Blob([JSON.stringify(last,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='MAC-FEISHU-PAYROLL-TAX-READINESS.json';a.click()};
-</script></body></html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="refresh" content="0;url=./module.html?module=settings">
+<title>MAC FEISHU PAYROLL — Settings</title>
+</head>
+<body>
+<p>Opening shared Settings...</p>
+<script>location.replace('./module.html?module=settings');</script>
+</body>
+</html>

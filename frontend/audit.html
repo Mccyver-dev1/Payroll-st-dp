@@ -1,10 +1,13 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mac Feishu Payroll — Base Audit</title>
-<style>body{font-family:Arial,sans-serif;background:#0b1220;color:#e8eef8;margin:0;padding:28px}h1{margin:0 0 8px}.muted{color:#9fb0c7}.bar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}button{background:#2563eb;color:white;border:0;padding:11px 16px;border-radius:8px;cursor:pointer}button.secondary{background:#334155}pre{white-space:pre-wrap;background:#111827;border:1px solid #263244;border-radius:10px;padding:16px;overflow:auto}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}.card{background:#111827;border:1px solid #263244;border-radius:10px;padding:16px}.ok{color:#4ade80}.bad{color:#fb7185}.warn{color:#fbbf24}table{width:100%;border-collapse:collapse;margin-top:14px}th,td{border-bottom:1px solid #263244;padding:9px;text-align:left;font-size:14px}</style></head>
-<body><h1>Mac Feishu Payroll — Base Audit</h1><div class="muted">STEP 2 • Read-only audit • ไม่แก้ไขหรือลบข้อมูลใน Feishu Base</div>
-<div class="bar"><button onclick="runAudit()">🔎 Run Audit</button><button class="secondary" onclick="downloadReport()">⬇ Export JSON</button></div><div id="summary" class="grid"></div><div id="content"></div>
-<script>const API=(localStorage.getItem('PAYROLL_API_URL')||'').replace(/\/$/,'');let last=null;
-async function runAudit(){document.getElementById('content').innerHTML='<p>กำลังอ่าน Feishu Base...</p>';try{const r=await fetch(API+'/api/audit');const j=await r.json();if(!j.ok)throw Error(j.error);last=j.report;render(j.report)}catch(e){document.getElementById('content').innerHTML='<p class="bad">เชื่อม Backend ไม่ได้: '+e.message+'</p>'}}
-function render(x){const found=x.canonicalTables.filter(t=>t.status==='FOUND').length;const dup=Object.values(x.duplicates).reduce((n,v)=>n+(v.duplicateCount||0),0);const orphan=Object.values(x.orphans).reduce((n,v)=>n+(v.orphanCount||0),0);document.getElementById('summary').innerHTML=`<div class="card"><b>Canonical tables</b><h2>${found}/8</h2></div><div class="card"><b>Duplicate records</b><h2 class="${dup?'bad':'ok'}">${dup}</h2></div><div class="card"><b>Orphan references</b><h2 class="${orphan?'warn':'ok'}">${orphan}</h2></div><div class="card"><b>Warnings</b><h2>${x.warnings.length}</h2></div>`;
-let html='<h2>Tables</h2><table><tr><th>Table</th><th>Status</th><th>Fields</th><th>Records</th></tr>';for(const t of x.canonicalTables)html+=`<tr><td>${t.key}</td><td class="${t.status==='FOUND'?'ok':'bad'}">${t.status}</td><td>${t.fieldCount}</td><td>${t.recordCount}</td></tr>`;html+='</table><h2>Warnings</h2><ul>'+((x.warnings.length?x.warnings:['ไม่มี warning จาก rule set ปัจจุบัน']).map(w=>'<li>'+w+'</li>').join(''))+'</ul><h2>Duplicate details</h2><pre>'+JSON.stringify(x.duplicates,null,2)+'</pre><h2>Orphan details</h2><pre>'+JSON.stringify(x.orphans,null,2)+'</pre>';document.getElementById('content').innerHTML=html}
-function downloadReport(){if(!last)return alert('กรุณา Run Audit ก่อน');const blob=new Blob([JSON.stringify(last,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='MAC-FEISHU-PAYROLL-BASE-AUDIT.json';a.click();URL.revokeObjectURL(a.href)}
-</script></body></html>
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="refresh" content="0;url=./module.html?module=settings">
+<title>MAC FEISHU PAYROLL — Settings</title>
+</head>
+<body>
+<p>Opening shared Settings...</p>
+<script>location.replace('./module.html?module=settings');</script>
+</body>
+</html>

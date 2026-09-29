@@ -1,25 +1,13 @@
 <!doctype html>
-<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mac Feishu Payroll — STEP 4 Payroll Audit</title>
-<style>
-body{font-family:Arial,sans-serif;background:#0b1220;color:#e8eef8;margin:0}main{max-width:1100px;margin:30px auto;padding:0 18px}
-.card{background:#111b2e;border:1px solid #263653;border-radius:14px;padding:18px;margin:14px 0}
-button{padding:10px 15px;border:0;border-radius:8px;cursor:pointer}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-table{width:100%;border-collapse:collapse}td,th{padding:9px;border-bottom:1px solid #263653;text-align:left}.pass{color:#63e6be}.fail,.warning{color:#ff7b7b}.muted{color:#91a4c0}
-</style></head>
-<body><main>
-<h1>STEP 4 — Payroll Formula Audit</h1>
-<p class="muted">ตรวจสูตร OT / ประกันสังคม / Gross / Net ก่อนเชื่อม Payroll จริง</p>
-<button id="run">Run Payroll Audit</button><button id="export">Export JSON</button><div id="out"></div>
-</main>
-<script>
-let last=null,$=x=>document.getElementById(x),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-async function run(){try{let r=await fetch('/api/payroll-audit');last=await r.json();if(!last.ok)throw Error(last.error);let x=last.report;
-let h=`<div class="grid"><div class="card"><b>OT tests</b><h2>${x.tests.ot.filter(v=>v.status==='PASS').length}/${x.tests.ot.length}</h2></div><div class="card"><b>SSO tests</b><h2>${x.tests.socialSecurity.filter(v=>v.status==='PASS').length}/${x.tests.socialSecurity.length}</h2></div><div class="card"><b>Overall</b><h2 class="${x.tests.allPassed?'pass':'fail'}">${x.tests.allPassed?'PASS':'FAIL'}</h2></div></div>`;
-h+=`<div class="card"><h2>Configuration</h2><pre>${esc(JSON.stringify(x.configuration,null,2))}</pre></div>`;
-h+=`<div class="card"><h2>Formulas</h2><pre>${esc(JSON.stringify(x.formulas,null,2))}</pre></div>`;
-h+='<div class="card"><h2>Tests</h2><table><tr><th>Group</th><th>Case</th><th>Expected</th><th>Actual</th><th>Status</th></tr>';
-for(const v of [...x.tests.ot,...x.tests.socialSecurity])h+=`<tr><td>${x.tests.ot.includes(v)?'OT':'SSO'}</td><td>${esc(v.name)}</td><td>${v.expected}</td><td>${v.actual}</td><td class="${v.status==='PASS'?'pass':'fail'}">${v.status}</td></tr>`;
-h+='</table></div><div class="card"><h2>Warnings</h2><ul>'+x.warnings.map(v=>`<li class="warning">${esc(v)}</li>`).join('')+'</ul></div>';$('out').innerHTML=h}catch(e){$('out').innerHTML='<div class="card fail">'+esc(e.message)+'</div>'}}
-$('run').onclick=run;$('export').onclick=()=>{if(!last)return alert('Run audit first');let b=new Blob([JSON.stringify(last,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='MAC-FEISHU-PAYROLL-FORMULA-AUDIT.json';a.click()};
-</script></body></html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="refresh" content="0;url=./module.html?module=payroll">
+<title>MAC FEISHU PAYROLL — Payroll Diagnostics</title>
+</head>
+<body>
+<p>Opening Payroll...</p>
+<script>location.replace('./module.html?module=payroll');</script>
+</body>
+</html>
