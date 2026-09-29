@@ -29,9 +29,21 @@ export async function tenantAccessToken() {
 
 async function call(path, options = {}) {
   const token = await tenantAccessToken();
+
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    Accept: 'application/json',
+    ...(options.headers || {})
+  };
+
+  // Content-Type is only needed when a request actually has a JSON body.
+  if (options.body) {
+    headers['Content-Type'] = 'application/json';
+  }
+
   return jsonFetch(BASE + path, {
     ...options,
-    headers: {Authorization:`Bearer ${token}`, 'Content-Type':'application/json', ...(options.headers || {})}
+    headers
   });
 }
 
